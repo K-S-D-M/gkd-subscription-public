@@ -1,0 +1,6 @@
+// 版本检测文件：与 gkd.json5 中的 id、version 保持一致
+// 更新规则时，同时修改此文件与 gkd.json5 的 version，即可触发订阅更新提示
+{
+  id: 233001,
+  version: 9,
+}
