@@ -2,5 +2,5 @@
 // 更新规则时，同时修改此文件与 gkd.json5 的 version，即可触发订阅更新提示
 {
   id: 233001,
-  version: 9,
+  version: 10,
 }
