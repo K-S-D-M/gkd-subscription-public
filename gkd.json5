@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 11,
+  version: 12,
 
   // 作者名称
   author: 'KSDM',
@@ -65,7 +65,7 @@
           rules: [
             {
               matches: [
-                '[id="com.zhiyinboke.yinyinting.www:id/ad_skip"][text*="后可跳过"]',
+                '[text*="跳过"]',
               ],
               fastQuery: true,
               activityIds: [
@@ -84,7 +84,7 @@
           rules: [
             {
               activityIds: '.activity.MainActivity',
-              matches: '[desc="播放"][id="com.zhiyinboke.yinyinting.www:id/butPlay"][vid="butPlay"]',
+              matches: '[desc="播放"]',
             },
           ],
         },
@@ -105,7 +105,7 @@
             {
               fastQuery: true,
               activityIds: '.activity.UPActivityMain',
-              matches: '[id="com.unionpay:id/eye"][desc="显示"][vid="eye"]',
+              matches: '[desc="显示"]',
             },
           ],
         },
@@ -153,7 +153,7 @@
           rules: [
             {
               activityIds: '.plugin.appbrand.ui.AppBrandPluginUI',
-              matches: 'TextView[visibleToUser=true][longClickable=false][text="领取"]',
+              matches: 'TextView[visibleToUser=true][longClickable=false][text*="领取"]',
             },
           ],
         },
