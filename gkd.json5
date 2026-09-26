@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 10,
+  version: 11,
 
   // 作者名称
   author: 'KSDM',
@@ -154,6 +154,23 @@
             {
               activityIds: '.plugin.appbrand.ui.AppBrandPluginUI',
               matches: 'TextView[visibleToUser=true][longClickable=false][text="领取"]',
+            },
+          ],
+        },
+      ],
+    },
+    // QQ邮箱：翻译邮件
+    {
+      id: 'com.tencent.androidqqmail', // App 包名
+      name: 'QQ邮箱',
+      groups: [
+        {
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
+          name: '自动翻译邮件',
+          rules: [
+            {
+              // 匹配所有含"翻译"的文本节点并点击
+              matches: 'TextView[text*="翻译"]',
             },
           ],
         },
