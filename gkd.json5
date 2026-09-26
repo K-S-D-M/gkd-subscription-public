@@ -1,0 +1,163 @@
+// ============================================
+// GKD（搞快点）个人订阅规则文件
+// 语法：JSON5（键名可省略引号，支持单引号和注释）
+// 官方格式文档：https://gkd.li/guide/subscription
+// ============================================
+
+{
+  // 订阅唯一 ID（数字，自行指定一个即可，不可与其它订阅重复）
+  id: 233001,
+
+  // 订阅名称（显示在 GKD 订阅列表中）
+  name: 'KSDM 个人订阅',
+
+  // 订阅版本号（每次更新规则后 +1，用于版本检测）
+  version: 9,
+
+  // 作者名称
+  author: 'KSDM',
+
+  // 订阅文件远程地址：GKD App 通过此地址拉取订阅
+  // 规则源码存于 private 仓库 gkd-subscription，经 GitHub Action 同步到此 public Pages 仓库对外发布
+  updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
+
+  // 版本检测文件地址（相对路径则相对于 updateUrl 所在目录）
+  // gkd.version.json5 文件已一并创建，用于快速检查版本号，减少流量消耗
+  checkUpdateUrl: './gkd.version.json5',
+
+  // 支持/反馈链接（指向 public 仓库）
+  supportUri: 'https://github.com/K-S-D-M/gkd-subscription-public',
+
+  // 规则分类（可选，用于在 GKD 中按分类开关规则组）
+  categories: [],
+
+  // 全局规则（不绑定具体 App，对所有应用生效）
+  globalGroups: [],
+
+  // 应用规则（每个元素对应一个 App 的规则集合）
+  apps: [
+    // 示例：知乎开屏广告跳过规则
+    {
+      id: 'com.zhihu.android', // App 包名（应用信息页可查看）
+      name: '知乎',
+      groups: [
+        {
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
+          name: '开屏广告',
+          rules: [
+            {
+              // 匹配规则：查找文本为"跳过"且可见的节点并点击
+              // 若你的设备上无效，可参考快照调试后调整 matches 表达式
+              matches: '[text*="跳过"][text.length<10][visibleToUser=true]',
+            },
+          ],
+        },
+      ],
+    },
+    // 听友FM：开屏广告跳过规则
+    {
+      id: 'com.zhiyinboke.yinyinting.www', // App 包名
+      name: '听友FM',
+      groups: [
+        {
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
+          name: '点击跳过',
+          rules: [
+            {
+              matches: [
+                '[id="com.zhiyinboke.yinyinting.www:id/ad_skip"][text*="后可跳过"]',
+              ],
+              fastQuery: true,
+              activityIds: [
+                'com.listen.adsdk.ui.SplashAdActivity',
+              ],
+            },
+          ],
+        },
+        {
+          key: 2, // 同一 App 内 key 从 1 递增，已用 1，这里用 2
+          name: '点击播放',
+          // 限制只点一次：避免 desc 在「播放/暂停」间切换导致反复点击
+          matchTime: 10000,
+          actionMaximum: 1,
+          resetMatch: 'app',
+          rules: [
+            {
+              activityIds: '.activity.MainActivity',
+              matches: '[desc="播放"][id="com.zhiyinboke.yinyinting.www:id/butPlay"][vid="butPlay"]',
+            },
+          ],
+        },
+      ],
+    },
+    // 云闪付：查看余额（点击显示按钮）
+    {
+      id: 'com.unionpay', // App 包名
+      name: '云闪付',
+      groups: [
+        {
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
+          name: '云闪付查看余额',
+          matchTime: 10000,
+          actionMaximum: 1,
+          resetMatch: 'app',
+          rules: [
+            {
+              fastQuery: true,
+              activityIds: '.activity.UPActivityMain',
+              matches: '[id="com.unionpay:id/eye"][desc="显示"][vid="eye"]',
+            },
+          ],
+        },
+        // 云闪付：关闭（React Native 弹窗关闭按钮）
+        {
+          key: 2,
+          name: '关闭',
+          rules: [
+            {
+              fastQuery: true,
+              activityIds: '.activity.react.UPActivityReactNative',
+              matches:
+                '@ImageView < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < FrameLayout < RelativeLayout < [id="android:id/content"]',
+            },
+          ],
+        },
+      ],
+    },
+    // 抖音：自动连播
+    {
+      id: 'com.ss.android.ugc.aweme', // App 包名
+      name: '抖音',
+      groups: [
+        {
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
+          name: '自动连播',
+          rules: [
+            {
+              fastQuery: true,
+              activityIds: '.main.MainActivity',
+              matches: '[id="com.ss.android.ugc.aweme:id/1td"]',
+            },
+          ],
+        },
+      ],
+    },
+    // 微信：小程序领取
+    {
+      id: 'com.tencent.mm', // App 包名
+      name: '微信',
+      groups: [
+        {
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
+          name: '微信小程序领取',
+          rules: [
+            {
+              activityIds: '.plugin.appbrand.ui.AppBrandPluginUI',
+              matches: 'TextView[visibleToUser=true][longClickable=false][text="领取"]',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
