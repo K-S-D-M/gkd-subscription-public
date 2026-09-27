@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 13,
+  version: 14,
 
   // 作者名称
   author: 'KSDM',
@@ -172,6 +172,105 @@
             {
               // 匹配所有含"翻译"的文本节点并点击
               matches: 'TextView[text*="翻译"]',
+            },
+          ],
+        },
+      ],
+    },
+    // 多多买菜：司机端常见操作（Flutter 页面）
+    {
+      id: 'com.xunmeng.tms', // App 包名
+      name: '多多买菜',
+      groups: [
+        {
+          key: 1,
+          name: '点击高德地图',
+          desc: 'Flutter页面常驻监听，控件属性变化后自动点击，支持反复触发',
+          actionCd: 1300,
+          forcedTime: 2200,
+          resetMatch: 'match',
+          rules: [
+            {
+              key: 1,
+              action: 'clickCenter',
+              matches: [
+                'View[desc="高德地图"][longClickable=false][visibleToUser=true]',
+              ],
+              actionDelay: 300,
+              fastQuery: false,
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
+          ],
+        },
+        {
+          key: 2,
+          name: '上传车牌',
+          desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          rules: [
+            {
+              matches: [
+                '[desc="上传车牌"][visibleToUser=true][longClickable=false]',
+              ],
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
+          ],
+        },
+        {
+          key: 3,
+          name: '更新弹窗',
+          desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          rules: [
+            {
+              matches: [
+                '[vid="cancelImg"][longClickable=false][visibleToUser=true]',
+              ],
+              fastQuery: true,
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
+          ],
+        },
+        {
+          key: 5,
+          name: '人脸识别',
+          desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          rules: [
+            {
+              matches: [
+                '[desc="人脸认证"][visibleToUser=true][clickable=true]',
+              ],
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
+          ],
+        },
+        {
+          key: 6,
+          name: '点击出仓库',
+          desc: 'Flutter页面，控件原地属性变化，常驻监听，确认出库状态改变自动点击',
+          actionCd: 1300,
+          forcedTime: 2200,
+          resetMatch: 'match',
+          // 关键修复：限制最多执行 1 次，防止按钮属性不变导致无限重复点击
+          actionMaximum: 1,
+          rules: [
+            {
+              key: 1,
+              action: 'clickCenter',
+              matches: [
+                '@[desc="确认出库"][clickable=true][visibleToUser=true]',
+              ],
+              actionDelay: 500,
+              fastQuery: false,
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
             },
           ],
         },
