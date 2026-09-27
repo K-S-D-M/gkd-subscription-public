@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 12,
+  version: 13,
 
   // 作者名称
   author: 'KSDM',
@@ -136,7 +136,8 @@
             {
               fastQuery: true,
               activityIds: '.main.MainActivity',
-              matches: '[id="com.ss.android.ugc.aweme:id/1td"]',
+              // 通过"自动连播"文本定位其右侧的 Switch 开关，仅在未开启(checked=false)时点击，避免误关
+              matches: '[text*="自动连播"] + Switch[checked=false]',
             },
           ],
         },
