@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 14,
+  version: 15,
 
   // 作者名称
   author: 'KSDM',
@@ -151,10 +151,23 @@
         {
           key: 1, // 规则组唯一 key（同一 App 内不可重复）
           name: '微信小程序领取',
+          desc: '仅点击领券卡片(rewardCard/giftContainer)内的「领取」按钮；文案白名单，避免误触说明文字与「已领取」',
+          // 防误触 + 防反复点击：每次唤醒最多点 1 次，从非匹配界面切回匹配界面时才重置计数
+          actionMaximum: 1,
+          resetMatch: 'match',
           rules: [
             {
+              // 主规则：限定在领券卡片容器内；>n 为"任意深度祖先"，抗小程序改版时多包一层布局
+              // id$= 只匹配后缀，抗构建 hash 前缀变化（53e56397--rewardCard → hash 变了仍命中）
               activityIds: '.plugin.appbrand.ui.AppBrandPluginUI',
-              matches: 'TextView[visibleToUser=true][longClickable=false][text*="领取"]',
+              matches:
+                '[id$="--rewardCard"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"]',
+            },
+            {
+              // 兜底规则：rewardCard 容器被改名时，退到外层礼物容器仍可命中
+              activityIds: '.plugin.appbrand.ui.AppBrandPluginUI',
+              matches:
+                '[id="giftContainer"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"]',
             },
           ],
         },
