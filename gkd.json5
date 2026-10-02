@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 15,
+  version: 16,
 
   // 作者名称
   author: 'KSDM',
@@ -283,6 +283,39 @@
               fastQuery: false,
               activityIds: [
                 'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    // 高德地图：起点或终点为指定地点时，路线页停留 10 秒后自动点「开始导航」
+    {
+      id: 'com.autonavi.minimap',
+      name: '高德地图',
+      groups: [
+        {
+          key: 1,
+          name: '自动开始导航（指定地点）',
+          desc: '「开始导航」按钮持续存在 10 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
+          // 快照 1790933723559 实测 activityId（后缀匹配，抗版本变化）
+          activityIds: '.map.activity.NewMapActivity',
+          // 官方定义：查询到节点 → 等待一段时间 → 再次查询到节点则执行 action
+          actionDelay: 10000,
+          // 只点一次；从非匹配界面切回匹配界面时重置（AGENTS.md 第 6 条）
+          actionMaximum: 1,
+          resetMatch: 'match',
+          // 点击目标与条件节点分处不同子树，从根节点开始匹配更稳
+          matchRoot: true,
+          rules: [
+            {
+              key: 1,
+              // 点击目标：「开始导航」的可点击节点在 desc 上，内层 text 节点 clickable=false
+              matches: '[desc="开始导航"]',
+              // 任一满足即可：起点或终点为该检测站（白名单枚举，不用包含匹配）
+              anyMatches: [
+                '[desc="起点，江西省阀门产品质量检测站"]',
+                '[desc="终点，江西省阀门产品质量检测站"]',
               ],
             },
           ],
