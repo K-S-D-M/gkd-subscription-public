@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 17,
+  version: 18,
 
   // 作者名称
   author: 'KSDM',
@@ -298,8 +298,8 @@
           key: 1,
           name: '自动开始导航（指定地点）',
           desc: '「开始导航」按钮持续存在 10 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
-          // 快照 1790933723559 实测 activityId（后缀匹配，抗版本变化）
-          activityIds: '.map.activity.NewMapActivity',
+          // 快照 1790933723559 实测：高德17.00.0.2009 实际 activity 为完整包名，相对形式不命中，故写全
+          activityIds: 'com.autonavi.map.activity.NewMapActivity',
           // 官方定义：查询到节点 → 等待一段时间 → 再次查询到节点则执行 action
           actionDelay: 10000,
           // 只点一次；从非匹配界面切回匹配界面时重置（AGENTS.md 第 6 条）
