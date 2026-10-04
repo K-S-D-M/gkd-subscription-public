@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 18,
+  version: 19,
 
   // 作者名称
   author: 'KSDM',
@@ -200,7 +200,9 @@
           name: '点击高德地图',
           desc: 'Flutter页面常驻监听，控件属性变化后自动点击，支持反复触发',
           actionCd: 1300,
-          forcedTime: 2200,
+          // 实时刷新：Flutter 页面不触发无障碍事件，整个 App 打开期间主动查询屏幕节点，
+          // 避免"必须手动切页面才能识别到"（值取 24h，等效于开着就持续刷新）
+          forcedTime: 86400000,
           resetMatch: 'match',
           rules: [
             {
@@ -221,6 +223,8 @@
           key: 2,
           name: '上传车牌',
           desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
+          forcedTime: 86400000,
           rules: [
             {
               matches: [
@@ -236,6 +240,8 @@
           key: 3,
           name: '更新弹窗',
           desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
+          forcedTime: 86400000,
           rules: [
             {
               matches: [
@@ -252,6 +258,8 @@
           key: 5,
           name: '人脸识别',
           desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
+          forcedTime: 86400000,
           rules: [
             {
               matches: [
@@ -268,7 +276,9 @@
           name: '点击出仓库',
           desc: 'Flutter页面，控件原地属性变化，常驻监听，确认出库状态改变自动点击',
           actionCd: 1300,
-          forcedTime: 2200,
+          // 实时刷新：Flutter 页面不触发无障碍事件，整个 App 打开期间主动查询屏幕节点，
+          // 避免"必须手动切页面才能识别到"（值取 24h，等效于开着就持续刷新）
+          forcedTime: 86400000,
           resetMatch: 'match',
           // 关键修复：限制最多执行 1 次，防止按钮属性不变导致无限重复点击
           actionMaximum: 1,
