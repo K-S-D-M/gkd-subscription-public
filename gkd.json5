@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 19,
+  version: 20,
 
   // 作者名称
   author: 'KSDM',
@@ -46,9 +46,10 @@
           name: '开屏广告',
           rules: [
             {
-              // 匹配规则：查找文本为"跳过"且可见的节点并点击
+              // 匹配规则：查找文本为"跳过"或"跳过广告"且可见的节点并点击
+              // 白名单枚举（不用 text*=），避免命中"跳过介绍"等说明文字
               // 若你的设备上无效，可参考快照调试后调整 matches 表达式
-              matches: '[text*="跳过"][text.length<10][visibleToUser=true]',
+              matches: '[text="跳过"||text="跳过广告"][visibleToUser=true]',
             },
           ],
         },
@@ -64,8 +65,10 @@
           name: '点击跳过',
           rules: [
             {
+              // 白名单枚举（不用 text*=），避免命中"跳过介绍"等说明文字
+              // activityIds 限定开屏页，避免误触其它页面的"跳过"
               matches: [
-                '[text*="跳过"]',
+                '[text="跳过"][visibleToUser=true]',
               ],
               fastQuery: true,
               activityIds: [
@@ -132,12 +135,17 @@
         {
           key: 1, // 规则组唯一 key（同一 App 内不可重复）
           name: '自动连播',
+          // 防循环：每次从非匹配界面切回匹配界面最多点 1 次
+          // 避免 Switch 状态因无障碍事件回传延迟而误判为"未开启"反复点击
+          actionMaximum: 1,
+          resetMatch: 'match',
           rules: [
             {
               fastQuery: true,
               activityIds: '.main.MainActivity',
               // 通过"自动连播"文本定位其右侧的 Switch 开关，仅在未开启(checked=false)时点击，避免误关
-              matches: '[text*="自动连播"] + Switch[checked=false]',
+              // 文本用精确匹配（不用 text*=），避免命中"自动连播已开启"等状态文案
+              matches: '[text="自动连播"] + Switch[checked=false]',
             },
           ],
         },
@@ -181,10 +189,15 @@
         {
           key: 1, // 规则组唯一 key（同一 App 内不可重复）
           name: '自动翻译邮件',
+          // 防循环：每次从非匹配界面切回匹配界面最多点 1 次
+          // 避免"翻译"变"已翻译"后反复点击
+          actionMaximum: 1,
+          resetMatch: 'match',
           rules: [
             {
-              // 匹配所有含"翻译"的文本节点并点击
-              matches: 'TextView[text*="翻译"]',
+              // 白名单枚举（不用 text*=），避免命中"翻译结果/翻译中/已翻译"等说明文字
+              // 待补充真实快照后，再叠加容器锚点进一步收窄
+              matches: 'TextView[visibleToUser=true][text="翻译"||text="翻译邮件"]',
             },
           ],
         },
