@@ -1,2 +1,1 @@
 import{F as e,J as t,g as n,h as r,p as i,u as a,z as o}from"./runtime-core.esm-bundler-a08HMgVk.js";import{t as s}from"./_plugin-vue_export-helper-wiDke0Jd.js";var c={},l={"page-size":``,flex:``,"flex-col":``,"flex-items-center":``,"w-full":``,"pt-50px":``,"gap-8px":``};function u(s,c){let u=o(`RouterLink`);return e(),i(`div`,l,[c[1]||=a(`div`,null,`当前页面不存在可访问资源`,-1),n(u,{to:`/`},{default:t(()=>[...c[0]||=[r(` 回到首页 `,-1)]]),_:1})])}var d=s(c,[[`render`,u]]);export{d as default};
-//# sourceMappingURL=NotFoundPage-DRyM2zRq.js.map

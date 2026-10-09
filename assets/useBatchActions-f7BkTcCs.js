@@ -3,4 +3,3 @@ import{i as e}from"./chunk-62oNxeRG.js";import{h as t}from"./dist-XEDp5Bio.js";i
 `})}),batchShareZipUrl:T(async()=>{await x(),b({content:(await w(await n())).map(e=>j(e)).join(`
 `)+`
 `})})}};export{B as i,U as n,z as r,W as t};
-//# sourceMappingURL=useBatchActions-f7BkTcCs.js.map

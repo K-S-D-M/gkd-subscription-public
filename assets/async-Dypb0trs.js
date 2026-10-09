@@ -1,2 +1,1 @@
 var e=async(e=0)=>new Promise(t=>{setTimeout(t,e)}),t=12e3,n=(e,t,n=`操作超时`)=>new Promise((r,i)=>{let a=setTimeout(()=>i(Error(n)),t);e().then(e=>{clearTimeout(a),r(e)},e=>{clearTimeout(a),i(e)})});export{e as n,n as r,t};
-//# sourceMappingURL=async-Dypb0trs.js.map
