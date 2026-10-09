@@ -1,0 +1,1 @@
+import{n as e}from"./storage-CwTUDdXE.js";export{e as setSnapshot};

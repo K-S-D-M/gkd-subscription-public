@@ -1,0 +1,2 @@
+var e=e=>{let t=[];if(e.dataTransfer?.items)for(let n of e.dataTransfer.items){if(n.kind!==`file`)continue;let e=n.getAsFile();e&&t.push(e)}else t.push(...Array.from(e.dataTransfer?.files||[]));return t};export{e as t};
+//# sourceMappingURL=files-DYm1VX51.js.map

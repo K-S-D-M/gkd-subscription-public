@@ -1,0 +1,1 @@
+{"version":3,"file":"check-FD8eqdRs.js","names":[],"sources":["../../src/shared/lib/check.ts"],"sourcesContent":["export const toValidURL = (url: string | URL, base?: string | URL) => {\n  try {\n    return new URL(url, base);\n  } catch {}\n};\n"],"mappings":"AAAA,IAAa,GAAc,EAAmB,IAAwB,CACpE,GAAI,CACF,OAAO,IAAI,IAAI,EAAK,CAAI,CAC1B,MAAQ,CAAC,CACX"}
