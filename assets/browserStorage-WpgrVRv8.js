@@ -1,2 +1,0 @@
-import{i as e}from"./chunk-62oNxeRG.js";import{b as t,w as n}from"./reactivity.esm-bundler-C_UYjkVY.js";import{t as r}from"./localforage-Bbmr6K2_.js";var i=e(r(),1),a=e=>e,o=(e,t)=>{try{return e()}catch{return t()}},s=(e,n,r=a)=>{let i=localStorage.getItem(e);return t(i?o(()=>r(JSON.parse(i)),n):n())},c=async(e,n,r=a)=>{let o=await i.default.getItem(e);return t(o?r(o):n())},l=(e,t)=>{i.default.setItem(e,n(t))},u=(e,t,n,r)=>{let i=String(n);r===void 0?delete e[i]:e[i]=r,l(t,e)};export{s as n,u as r,c as t};
-//# sourceMappingURL=browserStorage-WpgrVRv8.js.map

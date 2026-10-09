@@ -1,2 +1,0 @@
-import{u as e}from"./dist-C-C5Q4Qf.js";import{_ as t,b as n}from"./reactivity.esm-bundler-C_UYjkVY.js";var r=e(()=>{let e=n({networkErrorDialogVisible:!1,githubErrorDialogVisible:!1});return{state:t(e),setNetworkErrorDialogVisible:t=>{e.networkErrorDialogVisible=t},setGithubErrorDialogVisible:t=>{e.githubErrorDialogVisible=t}}});export{r as t};
-//# sourceMappingURL=store-BieuTKC-.js.map

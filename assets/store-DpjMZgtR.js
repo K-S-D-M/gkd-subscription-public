@@ -1,2 +1,0 @@
-import{_ as e,w as t}from"./reactivity.esm-bundler-C_UYjkVY.js";import{n}from"./browserStorage-WpgrVRv8.js";var r={gapSmall:`4px 8px`,gapMedium:`8px 12px`,gapLarge:`12px 16px`},i=()=>({autoUploadImport:!1,ignoreUploadWarn:!1,maxShowNodeSize:2e3,themeMode:`system`}),a=n(`settings`,i,e=>({...i(),...e,themeMode:e?.themeMode==`light`||e?.themeMode==`dark`?e.themeMode:`system`})),o=e(a),s={update(e){Object.assign(a,e),localStorage.setItem(`settings`,JSON.stringify(t(a)))}};export{o as n,r,s as t};
-//# sourceMappingURL=store-DpjMZgtR.js.map
