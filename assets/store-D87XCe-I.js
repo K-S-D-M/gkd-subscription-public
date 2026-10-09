@@ -1,0 +1,2 @@
+import{ct as e,rt as t}from"./runtime-core.esm-bundler-a08HMgVk.js";import{v as n}from"./storage-CT7KnmBC.js";var r={gapSmall:`4px 8px`,gapMedium:`8px 12px`,gapLarge:`12px 16px`},i=()=>({autoUploadImport:!1,ignoreUploadWarn:!1,maxShowNodeSize:2e3,themeMode:`system`}),a=n(`settings`,i,e=>({...i(),...e,themeMode:e?.themeMode==`light`||e?.themeMode==`dark`?e.themeMode:`system`})),o=t(a),s={update(t){Object.assign(a,t),localStorage.setItem(`settings`,JSON.stringify(e(a)))}};export{o as n,r,s as t};
+//# sourceMappingURL=store-D87XCe-I.js.map

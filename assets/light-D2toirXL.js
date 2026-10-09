@@ -1,0 +1,2 @@
+import{P as e,T as t,_ as n}from"./dist-XEDp5Bio.js";import{r}from"./light-BzfGPJNB.js";var i={iconSize:`22px`};function a(e){let{fontSize:t,warningColor:n}=e;return Object.assign(Object.assign({},i),{fontSize:t,iconColor:n})}var o=e({name:`Popconfirm`,common:t,peers:{Button:n,Popover:r},self:a});export{a as n,o as t};
+//# sourceMappingURL=light-D2toirXL.js.map

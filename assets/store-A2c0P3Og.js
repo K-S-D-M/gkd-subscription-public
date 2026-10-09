@@ -1,0 +1,2 @@
+import{u as e}from"./dist-XEDp5Bio.js";import{at as t,rt as n}from"./runtime-core.esm-bundler-a08HMgVk.js";var r=e(()=>{let e=t({networkErrorDialogVisible:!1,githubErrorDialogVisible:!1});return{state:n(e),setNetworkErrorDialogVisible:t=>{e.networkErrorDialogVisible=t},setGithubErrorDialogVisible:t=>{e.githubErrorDialogVisible=t}}});export{r as t};
+//# sourceMappingURL=store-A2c0P3Og.js.map
