@@ -1,0 +1,51 @@
+// ============================================
+// GKD 测试订阅：触发规则后自动拉起应用（联动测试）
+//
+// 方案：GKD 规则触发时写入日志(action_log)
+//       → 外部脚本监听 gkd 日志文件
+//       → 检测到指定规则名后执行 am start 拉起目标应用
+//
+// 使用步骤：
+//  1. 在 GKD 中点击「订阅」→ 右上角 + → 输入本文件 URL 或直接导入本文件
+//  2. 确认本订阅已启用，且 GKD 无障碍服务/Shizuku 已开启
+//  3. 在手机后台运行监听脚本 tools/gkd-launch-listener.sh（Termux/adb shell 均可）
+//  4. 打开微信 → 进入「文件传输助手」聊天页
+//  5. GKD 匹配到「文件传输助手」文本 → 规则触发（action=none 仅标记）
+//  6. 监听脚本检测到日志关键词 → 执行 am start 拉起目标应用（默认抖音）
+//
+// 触发应用(B)可自行替换 id/name/matches；目标应用在监听脚本中配置。
+// ============================================
+
+{
+  id: 233099, // 测试订阅唯一 ID（与主订阅 233001 区分）
+  name: 'KSDM 拉起应用测试',
+  version: 1,
+  author: 'KSDM',
+  updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/test-launch.json5',
+  checkUpdateUrl: './test-launch.version.json5',
+  supportUri: 'https://github.com/K-S-D-M/gkd-subscription-public',
+  globalGroups: [],
+  categories: [],
+  apps: [
+    {
+      id: 'com.tencent.mm', // 触发应用(B)：微信
+      name: '微信',
+      groups: [
+        {
+          key: 1,
+          name: '测试-触发后拉起应用',
+          desc: '匹配到「文件传输助手」标题文本时触发，action=none 仅作标记，由外部监听脚本拉起目标应用（默认抖音）',
+          actionMaximum: 1,
+          resetMatch: 'match',
+          rules: [
+            {
+              fastQuery: true,
+              activityIds: ['.ui.chatting.ChattingUI'],
+              matches: '[text="文件传输助手"][visibleToUser=true]',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
