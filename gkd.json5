@@ -12,7 +12,7 @@
   name: 'KSDM 个人订阅',
 
   // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 22,
+  version: 24,
 
   // 作者名称
   author: 'KSDM',
@@ -328,6 +328,10 @@
           // 快照 1790933723559 实测：高德17.00.0.2009 实际 activity 为完整包名，相对形式不命中，故写全
           activityIds: 'com.autonavi.map.activity.NewMapActivity',
           // 官方定义：查询到节点 → 等待一段时间 → 再次查询到节点则执行 action
+          // forcedTime：开始匹配后 30 秒内主动查询（即使无无障碍事件）。
+          // 高德路线页静止后可能不再触发 onAccessibilityEvent，GKD 感知不到变化就不重新查询，
+          // actionDelay 10 秒后的"再次查询"可能永远不会发生。加 forcedTime 兜底主动查询。
+          forcedTime: 30000,
           actionDelay: 10000,
           // 只点一次；从非匹配界面切回匹配界面时重置（AGENTS.md 第 6 条）
           actionMaximum: 1,
@@ -338,6 +342,9 @@
             {
               key: 1,
               // 点击目标：「开始导航」的可点击节点在 desc 上，内层 text 节点 clickable=false
+              // 关键：高德该按钮是自定义 View，无障碍 ACTION_CLICK 点击无效（实测"触发但无反应"），
+              // 必须用 clickCenter 坐标模拟触摸（走触摸通道，等同手指点击；Shizuku 模式下最稳）
+              action: 'clickCenter',
               matches: '[desc="开始导航"]',
               // 白名单：起点或终点任一为指定地址即触发（anyMatches 任一满足）
               // 用 $= 后缀匹配而非完整 desc：兼容"起点，/终点，"前缀及全角/半角逗号等格式差异；
