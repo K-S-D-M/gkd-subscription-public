@@ -1,362 +1,326 @@
-// ============================================
-// GKD（搞快点）个人订阅规则文件
-// 语法：JSON5（键名可省略引号，支持单引号和注释）
-// 官方格式文档：https://gkd.li/guide/subscription
-// ============================================
-
-{
-  // 订阅唯一 ID（数字，自行指定一个即可，不可与其它订阅重复）
-  id: 233001,
-
-  // 订阅名称（显示在 GKD 订阅列表中）
-  name: 'KSDM 个人订阅',
-
-  // 订阅版本号（每次更新规则后 +1，用于版本检测）
-  version: 24,
-
-  // 作者名称
-  author: 'KSDM',
-
-  // 订阅文件远程地址：GKD App 通过此地址拉取订阅
-  // 规则源码存于 private 仓库 gkd-subscription，经 GitHub Action 同步到此 public Pages 仓库对外发布
-  updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
-
-  // 版本检测文件地址（相对路径则相对于 updateUrl 所在目录）
-  // gkd.version.json5 文件已一并创建，用于快速检查版本号，减少流量消耗
-  checkUpdateUrl: './gkd.version.json5',
-
-  // 支持/反馈链接（指向 public 仓库）
-  supportUri: 'https://github.com/K-S-D-M/gkd-subscription-public',
-
-  // 规则分类（可选，用于在 GKD 中按分类开关规则组）
-  categories: [],
-
-  // 全局规则（不绑定具体 App，对所有应用生效）
-  globalGroups: [],
-
-  // 应用规则（每个元素对应一个 App 的规则集合）
-  apps: [
-    // 示例：知乎开屏广告跳过规则
-    {
-      id: 'com.zhihu.android', // App 包名（应用信息页可查看）
-      name: '知乎',
-      groups: [
-        {
-          key: 1, // 规则组唯一 key（同一 App 内不可重复）
-          name: '开屏广告',
-          rules: [
-            {
-              // 匹配规则：查找文本为"跳过"或"跳过广告"且可见的节点并点击
-              // 白名单枚举（不用 text*=），避免命中"跳过介绍"等说明文字
-              // 若你的设备上无效，可参考快照调试后调整 matches 表达式
-              matches: '[text="跳过"||text="跳过广告"][visibleToUser=true]',
-            },
-          ],
-        },
-      ],
-    },
-    // 听友FM：开屏广告跳过规则
-    {
-      id: 'com.zhiyinboke.yinyinting.www', // App 包名
-      name: '听友FM',
-      groups: [
-        {
-          key: 1, // 规则组唯一 key（同一 App 内不可重复）
-          name: '点击跳过',
-          rules: [
-            {
-              // 白名单枚举（不用 text*=），避免命中"跳过介绍"等说明文字
-              // activityIds 限定开屏页，避免误触其它页面的"跳过"
-              matches: [
-                '[text="跳过"][visibleToUser=true]',
-              ],
-              fastQuery: true,
-              activityIds: [
-                'com.listen.adsdk.ui.SplashAdActivity',
-              ],
-            },
-          ],
-        },
-        {
-          key: 2, // 同一 App 内 key 从 1 递增，已用 1，这里用 2
-          name: '点击播放',
-          // 限制只点一次：避免 desc 在「播放/暂停」间切换导致反复点击
-          matchTime: 10000,
-          actionMaximum: 1,
-          resetMatch: 'app',
-          rules: [
-            {
-              activityIds: '.activity.MainActivity',
-              matches: '[desc="播放"]',
-            },
-          ],
-        },
-      ],
-    },
-    // 云闪付：查看余额（点击显示按钮）
-    {
-      id: 'com.unionpay', // App 包名
-      name: '云闪付',
-      groups: [
-        {
-          key: 1, // 规则组唯一 key（同一 App 内不可重复）
-          name: '云闪付查看余额',
-          matchTime: 10000,
-          actionMaximum: 1,
-          resetMatch: 'app',
-          rules: [
-            {
-              fastQuery: true,
-              activityIds: '.activity.UPActivityMain',
-              matches: '[desc="显示"]',
-            },
-          ],
-        },
-        // 云闪付：关闭（React Native 弹窗关闭按钮）
-        {
-          key: 2,
-          name: '关闭',
-          rules: [
-            {
-              fastQuery: true,
-              activityIds: '.activity.react.UPActivityReactNative',
-              matches:
-                '@ImageView < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < FrameLayout < RelativeLayout < [id="android:id/content"]',
-            },
-          ],
-        },
-      ],
-    },
-    // 抖音：自动连播
-    {
-      id: 'com.ss.android.ugc.aweme', // App 包名
-      name: '抖音',
-      groups: [
-        {
-          key: 1, // 规则组唯一 key（同一 App 内不可重复）
-          name: '自动连播',
-          // 防循环：每次从非匹配界面切回匹配界面最多点 1 次
-          // 避免 Switch 状态因无障碍事件回传延迟而误判为"未开启"反复点击
-          actionMaximum: 1,
-          resetMatch: 'match',
-          rules: [
-            {
-              fastQuery: true,
-              activityIds: '.main.MainActivity',
-              // 通过"自动连播"文本定位其右侧的 Switch 开关，仅在未开启(checked=false)时点击，避免误关
-              // 文本用精确匹配（不用 text*=），避免命中"自动连播已开启"等状态文案
-              matches: '[text="自动连播"] + Switch[checked=false]',
-            },
-          ],
-        },
-      ],
-    },
-    // 微信：小程序领取
-    {
-      id: 'com.tencent.mm', // App 包名
-      name: '微信',
-      groups: [
-        {
-          key: 1, // 规则组唯一 key（同一 App 内不可重复）
-          name: '微信小程序领取',
-          desc: '仅点击提现券奖励卡片(rewardCard/giftContainer)内的「领取」按钮，排除领券槽(coupon-slot)内的领取；文案白名单，避免误触说明文字与「已领取」',
-          // 防误触 + 防反复点击：每次唤醒最多点 1 次，从非匹配界面切回匹配界面时才重置计数
-          actionMaximum: 1,
-          resetMatch: 'match',
-          rules: [
-            {
-              // 主规则：限定在提现券奖励卡片(rewardCard)容器内；>n 为"任意深度祖先"，抗小程序改版时多包一层布局
-              // id$= 只匹配后缀，抗构建 hash 前缀变化（53e56397--rewardCard → hash 变了仍命中）
-              // && !(...coupon-slot)：排除领券槽内的「领取」，避免误点「领券下单得提现券」的领取
-              // activityIds 用前缀匹配（官方文档：界面Id startWith activityIds 任一项即匹配）：
-              //   '.plugin.appbrand.ui.AppBrandUI' 一次覆盖 AppBrandUI00/01/02/... 所有壳变体，
-              //   避免微信每次换壳数字（实测出现过 AppBrandUI00、AppBrandUI01）都导致规则失效
-              activityIds: ['.plugin.appbrand.ui.AppBrandPluginUI', '.plugin.appbrand.ui.AppBrandUI'],
-              matches:
-                '([id$="--rewardCard"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"]) && !([id$="--home-mch-coupon-slot"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"])',
-            },
-            {
-              // 兜底规则：rewardCard 容器被改名时，退到外层礼物容器仍可命中；同样排除领券槽
-              activityIds: ['.plugin.appbrand.ui.AppBrandPluginUI', '.plugin.appbrand.ui.AppBrandUI'],
-              matches:
-                '([id="giftContainer"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"]) && !([id$="--home-mch-coupon-slot"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"])',
-            },
-          ],
-        },
-      ],
-    },
-    // QQ邮箱：翻译邮件
-    {
-      id: 'com.tencent.androidqqmail', // App 包名
-      name: 'QQ邮箱',
-      groups: [
-        {
-          key: 1, // 规则组唯一 key（同一 App 内不可重复）
-          name: '自动翻译邮件',
-          // 防循环：每次从非匹配界面切回匹配界面最多点 1 次
-          // 避免"翻译"变"已翻译"后反复点击
-          actionMaximum: 1,
-          resetMatch: 'match',
-          rules: [
-            {
-              // 白名单枚举（不用 text*=），避免命中"翻译结果/翻译中/已翻译"等说明文字
-              // 待补充真实快照后，再叠加容器锚点进一步收窄
-              matches: 'TextView[visibleToUser=true][text="翻译"||text="翻译邮件"]',
-            },
-          ],
-        },
-      ],
-    },
-    // 多多买菜：司机端常见操作（Flutter 页面）
-    {
-      id: 'com.xunmeng.tms', // App 包名
-      name: '多多买菜',
-      groups: [
-        {
-          key: 1,
-          name: '点击高德地图',
-          desc: 'Flutter页面常驻监听，控件属性变化后自动点击，支持反复触发',
-          actionCd: 1300,
-          // 实时刷新：Flutter 页面不触发无障碍事件，整个 App 打开期间主动查询屏幕节点，
-          // 避免"必须手动切页面才能识别到"（值取 24h，等效于开着就持续刷新）
-          forcedTime: 86400000,
-          resetMatch: 'match',
-          rules: [
-            {
-              key: 1,
-              action: 'clickCenter',
-              matches: [
-                'View[desc="高德地图"][longClickable=false][visibleToUser=true]',
-              ],
-              actionDelay: 300,
-              fastQuery: false,
-              activityIds: [
-                'com.xunmeng.tms.activity.FlutterMainActivity',
-              ],
-            },
-          ],
-        },
-        {
-          key: 2,
-          name: '上传车牌',
-          desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
-          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
-          forcedTime: 86400000,
-          rules: [
-            {
-              matches: [
-                '[desc="上传车牌"][visibleToUser=true][longClickable=false]',
-              ],
-              activityIds: [
-                'com.xunmeng.tms.activity.FlutterMainActivity',
-              ],
-            },
-          ],
-        },
-        {
-          key: 3,
-          name: '更新弹窗',
-          desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
-          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
-          forcedTime: 86400000,
-          rules: [
-            {
-              matches: [
-                '[vid="cancelImg"][longClickable=false][visibleToUser=true]',
-              ],
-              fastQuery: true,
-              activityIds: [
-                'com.xunmeng.tms.activity.FlutterMainActivity',
-              ],
-            },
-          ],
-        },
-        {
-          key: 5,
-          name: '人脸识别',
-          desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
-          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
-          forcedTime: 86400000,
-          rules: [
-            {
-              matches: [
-                '[desc="人脸认证"][visibleToUser=true][clickable=true]',
-              ],
-              activityIds: [
-                'com.xunmeng.tms.activity.FlutterMainActivity',
-              ],
-            },
-          ],
-        },
-        {
-          key: 6,
-          name: '点击出仓库',
-          desc: 'Flutter页面，控件原地属性变化，常驻监听，确认出库状态改变自动点击',
-          actionCd: 1300,
-          // 实时刷新：Flutter 页面不触发无障碍事件，整个 App 打开期间主动查询屏幕节点，
-          // 避免"必须手动切页面才能识别到"（值取 24h，等效于开着就持续刷新）
-          forcedTime: 86400000,
-          resetMatch: 'match',
-          // 关键修复：限制最多执行 1 次，防止按钮属性不变导致无限重复点击
-          actionMaximum: 1,
-          rules: [
-            {
-              key: 1,
-              action: 'clickCenter',
-              matches: [
-                '@[desc="确认出库"][clickable=true][visibleToUser=true]',
-              ],
-              actionDelay: 500,
-              fastQuery: false,
-              activityIds: [
-                'com.xunmeng.tms.activity.FlutterMainActivity',
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    // 高德地图：起点或终点为指定地点时，路线页停留 10 秒后自动点「开始导航」
-    {
-      id: 'com.autonavi.minimap',
-      name: '高德地图',
-      groups: [
-        {
-          key: 1,
-          name: '自动开始导航（指定地点）',
-          desc: '「开始导航」按钮持续存在 10 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
-          // 快照 1790933723559 实测：高德17.00.0.2009 实际 activity 为完整包名，相对形式不命中，故写全
-          activityIds: 'com.autonavi.map.activity.NewMapActivity',
-          // 官方定义：查询到节点 → 等待一段时间 → 再次查询到节点则执行 action
-          // forcedTime：开始匹配后 30 秒内主动查询（即使无无障碍事件）。
-          // 高德路线页静止后可能不再触发 onAccessibilityEvent，GKD 感知不到变化就不重新查询，
-          // actionDelay 10 秒后的"再次查询"可能永远不会发生。加 forcedTime 兜底主动查询。
-          forcedTime: 30000,
-          actionDelay: 10000,
-          // 只点一次；从非匹配界面切回匹配界面时重置（AGENTS.md 第 6 条）
-          actionMaximum: 1,
-          resetMatch: 'match',
-          // 点击目标与条件节点分处不同子树，从根节点开始匹配更稳
-          matchRoot: true,
-          rules: [
-            {
-              key: 1,
-              // 点击目标：「开始导航」的可点击节点在 desc 上，内层 text 节点 clickable=false
-              // 关键：高德该按钮是自定义 View，无障碍 ACTION_CLICK 点击无效（实测"触发但无反应"），
-              // 必须用 clickCenter 坐标模拟触摸（走触摸通道，等同手指点击；Shizuku 模式下最稳）
-              action: 'clickCenter',
-              matches: '[desc="开始导航"]',
-              // 白名单：起点或终点任一为指定地址即触发（anyMatches 任一满足）
-              // 用 $= 后缀匹配而非完整 desc：兼容"起点，/终点，"前缀及全角/半角逗号等格式差异；
-              // 地址本身是唯一白名单，不会误触其它路线（快照 1791887370368 实测命中 id=255）
-              anyMatches: [
-                '[desc$="江西省南昌市南昌县丁新大道188号"]',
-                '[desc$="江西省阀门产品质量检测站"]',
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-}
+Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT0KLy8gR0tE77yI5pCe5b+r54K577yJ5Liq5Lq66K6i6ZiF6KeE5YiZ5paH
+5Lu2Ci8vIOivreazle+8mkpTT04177yI6ZSu5ZCN5Y+v55yB55Wl5byV5Y+3
+77yM5pSv5oyB5Y2V5byV5Y+35ZKM5rOo6YeK77yJCi8vIOWumOaWueagvOW8
+j+aWh+aho++8mmh0dHBzOi8vZ2tkLmxpL2d1aWRlL3N1YnNjcmlwdGlvbgov
+LyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PQoKewogIC8vIOiuoumYheWUr+S4gCBJRO+8iOaVsOWtl++8jOiHquihjOa
+h+WumuS4gOS4quWNs+WPr++8jOS4jeWPr+S4juWFtuWug+iuoumYhemHjeWk
+je+8iQogIGlkOiAyMzMwMDEsCgogIC8vIOiuoumYheWQjeensO+8iOaYvuek
+uuWcqCBHS0Qg6K6i6ZiF5YiX6KGo5Lit77yJCiAgbmFtZTogJ0tTRE0g5Liq
+5Lq66K6i6ZiFJywKCiAgLy8g6K6i6ZiF54mI5pys5Y+377yI5q+P5qyh5pu0
+5paw6KeE5YiZ5ZCOICsx77yM55So5LqO54mI5pys5qOA5rWL77yJCiAgdmVy
+c2lvbjogMjUsCgogIC8vIOS9nOiAheWQjeensAogIGF1dGhvcjogJ0tTRE0n
+LAoKICAvLyDorqLpmIXmlofku7bov5znqIvlnLDlnYDvvJpHS0QgQXBwIOmA
+mui/h+atpOWcsOWdgOaLieWPluiuoumYhQogIC8vIOinhOWImea6kOeggeWt
+mOS6jiBwcml2YXRlIOS7k+W6kyBna2Qtc3Vic2NyaXB0aW9u77yM57uPIEdp
+dEh1YiBBY3Rpb24g5ZCM5q2l5Yiw5q2kIHB1mxpYyBQYWdlcyDku5PlupPl
+r7nlpJblj5HluIMKICB1cGRhdGVVcmw6ICdodHRwczovL2stcy1kLW0uZ2l0
+aHViLmlvL2drZC1zdWJzY3JpcHRpb24tcHVibGljL2drZC5qc29uNScsCgog
+IC8vIOeJiOacrOajgOa1i+aWh+S7tuWcsOWdgO+8iOebuOWvuei3r+W+hOWI
+meebuOWvueS6jiB1cGRhdGVVcmwg5omA5Zyo55uu5b2V77yJCiAgLy8gZ2tk
+LnZlcnNpb24uanNvbjUg5paH5Lu25bey5LiA5bm25Yib5bu677yM55So5LqO
+5b+r6YCf5qOA5p+l54mI5pys5Y+377yM5YeP5bCR5rWB6YeP5raI6ICXCiAg
+Y2hlY2tVcGRhdGVVcmw6ICcuL2drZC52ZXJzaW9uLmpzb241JywKCiAgLy8g
+5pSv5oyBL+WPjemmiOmTvuaOpe+8iOaMh+WQkSBwdWJsaWMg5Lu5TbqT77yJ
+CiAgc3VwcG9ydFVyaTogJ2h0dHBzOi8vZ2l0aHViLmNvbS9LLVMtRC1NL2dr
+ZC1zdWJzY3JpcHRpb24tcHVibGljJywKCiAgLy8g6KeE5YiZ5YiG57G777yI
+5Y+v6YCJ77yM55So5LqO5ZyoIEdLRCDkuK3mjInliIbnsbvlvIDlhbPop4Tl
+iJnnu4TvvIkKICBjYXRlZ29yaWVzOiBbXSwKCiAgLy8g5YWo5bGA6KeE5YiZ
+77yI5LiN57uR5a6a5YW35L2TIEFwcO+8jOWvueaJgOacieW6lOeUqOeUn+aV
+iO+8iQogIGdsb2JhbEdyb3VwczogW10sCgogIC8vIOW6lOeUqOinhOWIme+8
+iOavj+S4quWFg+e0oOWvueW6lOS4gOS4qiBBcHAg55qE6KeE5YiZ6ZuG5ZCI
+77yJCiAgYXBwczogWwogICAgLy8g56S65L6L77ya55+l5LmO5byA5bGP5bm/
+5ZGK6Lez6L+H6KeE5YiZCiAgICB7CiAgICAgIGlkOiAnY29tLnpoaWh1LmFu
+ZHJvaWQnLCAvLyBBcHAg5YyF5ZCN77yI5bqU55So5L+h5oGv6aG15Y+v5p+l
+55yL77yJCiAgICAgIG5hbWU6ICfnn6XkuY4nLAogICAgICBncm91cHM6IFsK
+ICAgICAgICB7CiAgICAgICAgICBrZXk6IDEsIC8vIOinhOWImee7hOWUr+S4
+gCBrZXnvvIjlkIzkuIAgQXBwIOWGheS4jeWPr+mHjeWkje+8iQogICAgICAg
+ICAgbmFtZTogJ+W8gOWxj+W5v+WRiicsCiAgICAgICAgICBydWxlczogWwog
+ICAgICAgICAgICB7CiAgICAgICAgICAgICAgLy8g5Yy56YWN6KeE5YiZ77ya
+5p+l5om+5paH5pys5Li6Iui3s+i/hyLmiJYi6Lez6L+H5bm/5ZGKIuS4lOWP
+r+ingeeahOiKgueCueW5tueCueWHuwogICAgICAgICAgICAgIC8vIOeZveW
+QjeWNleaemuS4vu+8iOS4jeeUqCB0ZXh0Kj3vvInvvIzpgb/lhY3lkb3kuK0i
+6Lez6L+H5LuL57uNIuetieivtOaYjuaWh+WtlwogICAgICAgICAgICAgIC8v
+IOiLpeS9oOeahOiuvuWkh+S4iuaXoOaViO+8jOWPr+WPguiAg+W/q+eFp+iw
+g+ivleWQjuiwg+aVtCBtYXRjaGVzIOihqOi+vuW8jwogICAgICAgICAgICAg
+IG1hdGNoZXM6ICdbdGV4dD0i6Lez6L+HInx8dGV4dD0i6Lez6L+H5bm/5ZGK
+Il1bdmlzaWJsZVRvVXNlcj10cnVlXScsCiAgICAgICAgICAgIH0sCiAgICAg
+ICAgICBdLAogICAgICAgIH0sCiAgICAgIF0sCiAgICB9LAogICAgLy8g5ZCs
+5Y+LRk3vvJrlvIDlsY/lub/lkYrot7Pov4fop4TliJkKICAgIHsKICAgICAg
+aWQ6ICdjb20uemhpeWluYm9rZS55aW55aW50aW5nLnd3dycsIC8vIEFwcCDl
+jIXlkI0KICAgICAgbmFtZTogJ+WQrOWPi0ZNJywKICAgICAgZ3JvdXBzOiBb
+CiAgICAgICAgewogICAgICAgICAga2V5OiAxLCAvLyDop4TliJnnu4TllK/k
+uIAga2V577yI5ZCM5LiAIEFwcCDlhoXkuI3lj6/ph43lpI3vvIkKICAgICAg
+ICAgIG5hbWU6ICfngrnlh7vot7Pov4cnLAogICAgICAgICAgcnVsZXM6IFsK
+ICAgICAgICAgICAgewogICAgICAgICAgICAgIC8vIOeZveWQjeWNleaemuS4
+vu+8iOS4jeeUqCB0ZXh0Kj3vvInvvIzpgb/lhY3lkb3kuK0i6Lez6L+H5LuL
+57uNIuetieivtOaYjuaWh+WtlwogICAgICAgICAgICAgIC8vIGFjdGl2aXR5
+SWRzIOmZkOWumuW8gOWxj+mhte+8jOmBv+WFjeivr+inpuWFtuWug+mhtemd
+oueahCLot7Pov4ciCiAgICAgICAgICAgICAgbWF0Y2hlczogWwogICAgICAg
+ICAgICAgICAgJ1t0ZXh0PSLot7Pov4ciXVt2aXNpYmxlVG9Vc2VyPXRydWVd
+JywKICAgICAgICAgICAgICBdLAogICAgICAgICAgICAgIGZhc3RRdWVyeTog
+dHJ1ZSwKICAgICAgICAgICAgICBhY3Rpdml0eUlkczogWwogICAgICAgICAg
+ICAgICAgJ2NvbS5saXN0ZW4uYWRzZGsudWkuU3BsYXNoQWRBY3Rpdml0eScs
+CiAgICAgICAgICAgICAgXSwKICAgICAgICAgICAgfSwKICAgICAgICAgIF0s
+CiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICBrZXk6IDIsIC8vIOWQ
+jOS4gCBBcHAg5YaFIGtleSDku44gMSDpgJLlop7vvIzlt7LnlKggMe+8jOi/
+memHjOeUqCAyCiAgICAgICAgICBuYW1lOiAn54K55Ye75pKt5pS+JywKICAg
+ICAgICAgIC8vIOmZkOWItuWPqueCueS4gOasoe+8mumBv+WFjSBkZXNjIOWc
+qOOAjOaSreaUvi/mmoLlgZzjgI3pl7TliIfmjaLlr7zoh7Tlj43lpI3ngrnl
+h7sKICAgICAgICAgIG1hdGNoVGltZTogMTAwMDAsCiAgICAgICAgICBhY3Rp
+b25NYXhpbXVtOiAxLAogICAgICAgICAgcmVzZXRNYXRjaDogJ2FwcCcsCiAg
+ICAgICAgICBydWxlczogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAg
+YWN0aXZpdHlJZHM6ICcuYWN0aXZpdHkuTWFpbkFjdGl2aXR5JywKICAgICAg
+ICAgICAgICBtYXRjaGVzOiAnW2Rlc2M9IuaSreaUviJdJywKICAgICAgICAg
+ICAgfSwKICAgICAgICAgIF0sCiAgICAgICAgfSwKICAgICAgXSwKICAgIH0s
+CiAgICAvLyDkupHpl6rku5jvvJrmn6XnnIvkvZnpop3vvIjngrnlh7vmmL7n
+pLrmjInpkq7vvIkKICAgIHsKICAgICAgaWQ6ICdjb20udW5pb25wYXknLCAv
+LyBBcHAg5YyF5ZCNCiAgICAgIG5hbWU6ICfkupHpl6rku5gnLAogICAgICBn
+cm91cHM6IFsKICAgICAgICB7CiAgICAgICAgICBrZXk6IDEsIC8vIOinhOWI
+mee7hOWUr+S4gCBrZXnvvIjlkIzkuIAgQXBwIOWGheS4jeWPr+mHjeWkje+8
+iQogICAgICAgICAgbmFtZTogJ+S6kemXquS7mOafpeeci+S9meminScsCiAg
+ICAgICAgICBtYXRjaFRpbWU6IDEwMDAwLAogICAgICAgICAgYWN0aW9uTWF4
+aW11bTogMSwKICAgICAgICAgIHJlc2V0TWF0Y2g6ICdhcHAnLAogICAgICAg
+ICAgcnVsZXM6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAgIGZhc3RR
+dWVyeTogdHJ1ZSwKICAgICAgICAgICAgICBhY3Rpdml0eUlkczogJy5hY3Rp
+dml0eS5VUEFjdGl2aXR5TWFpbicsCiAgICAgICAgICAgICAgbWF0Y2hlczog
+J1tkZXNjPSLmmL7npLoiXScsCiAgICAgICAgICAgIH0sCiAgICAgICAgICBd
+LAogICAgICAgIH0sCiAgICAgICAgLy8g5LqR6Zeq5LuY77ya5YWz6Zet77yI
+UmVhY3QgTmF0aXZlIOW8ueeql+WFs+mXreaMiemSru+8iQogICAgICAgIHsK
+ICAgICAgICAgIGtleTogMiwKICAgICAgICAgIG5hbWU6ICflhbPpl60nLAog
+ICAgICAgICAgcnVsZXM6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAg
+IGZhc3RRdWVyeTogdHJ1ZSwKICAgICAgICAgICAgICBhY3Rpdml0eUlkczog
+Jy5hY3Rpdml0eS5yZWFjdC5VUEFjdGl2aXR5UmVhY3ROYXRpdmUnLAogICAg
+ICAgICAgICAgIG1hdGNoZXM6CiAgICAgICAgICAgICAgICAnQEltYWdlVmll
+dyA8IFZpZXdHcm91cCA8IFZpZXdHcm91cCA8IFZpZXdHcm91cCA8IFZpZXdH
+cm91cCA8IFZpZXdHcm91cCA8IFZpZXdHcm91cCA8IFZpZXdHcm91cCA8IFZp
+ZXdHcm91cCA8IFZpZXdHcm91cCA8IEZyYW1lTGF5b3V0IDwgUmVsYXRpdmVM
+YXlvdXQgPCBbaWQ9ImFuZHJvaWQ6aWQvY29udGVudCJdJywKICAgICAgICAg
+ICAgfSwKICAgICAgICAgIF0sCiAgICAgICAgfSwKICAgICAgXSwKICAgIH0s
+CiAgICAvLyDmipbpn7PvvJroh6rliqjov57mkq0KICAgIHsKICAgICAgaWQ6
+ICdjb20uc3MuYW5kcm9pZC51Z2MuYXdlbWUnLCAvLyBBcHAg5YyF5ZCNCiAg
+ICAgIG5hbWU6ICfmipbpn7MnLAogICAgICBncm91cHM6IFsKICAgICAgICB7
+CiAgICAgICAgICBrZXk6IDEsIC8vIOinhOWImee7hOWUr+S4gCBrZXnvvIjl
+kIzkuIAgQXBwIOWGheS4jeWPr+mHjeWkje+8iQogICAgICAgICAgbmFtZTog
+J+iHquWKqOi/nuaSrScsCiAgICAgICAgICAvLyDpmLLlvqrnjq/vvJrmr4/m
+rKHku47pnZ7ljLnphY3nlYzpnaLliIflm57ljLnphY3nlYzpnaLmnIDlpJrn
+grkgMSDmrKEKICAgICAgICAgIC8vIOmBv+WFjSBTd2l0Y2gg54q25oCB5Zug
+5peg6Zqc56KN5LqL5Lu25Zue5Lyg5bu26L+f6ICM6K+v5Yik5Li6IuacquW8
+gOWQryLlj43lpI3ngrnlh7sKICAgICAgICAgIGFjdGlvbk1heGltdW06IDEs
+CiAgICAgICAgICByZXNldE1hdGNoOiAnbWF0Y2gnLAogICAgICAgICAgcnVs
+ZXM6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAgIGZhc3RRdWVyeTog
+dHJ1ZSwKICAgICAgICAgICAgICBhY3Rpdml0eUlkczogJy5tYWluLk1haW5B
+Y3Rpdml0eScsCiAgICAgICAgICAgICAgLy8g6YCa6L+HIuiHquWKqOi/nuaS
+rSLmlofmnKzlrprkvY3lhbblj7PkvqfnmoQgU3dpdGNoIOW8gOWFs++8jOS7
+heWcqOacquW8gOWQryhjaGVja2VkPWZhbHNlKeaXtueCueWHu++8jOmBv+WF
+jeivr+WFswogICAgICAgICAgICAgIC8vIOaWh+acrOeUqOeyvuehruWMuemF
+je+8iOS4jeeUqCB0ZXh0Kj3vvInvvIzpgb/lhY3lkb3kuK0i6Ieq5Yqo6L+e
+5pKt5bey5byA5ZCvIuetieeKtuaAgeaWh+ahiAogICAgICAgICAgICAgIG1h
+dGNoZXM6ICdbdGV4dD0i6Ieq5Yqo6L+e5pKtIl0gKyBTd2l0Y2hbY2hlY2tl
+ZD1mYWxzZV0nLAogICAgICAgICAgICB9LAogICAgICAgICAgXSwKICAgICAg
+ICB9LAogICAgICBdLAogICAgfSwKICAgIC8vIOW+ruS/oe+8muWwj+eoi+W6
+j+mihuWPlgogICAgewogICAgICBpZDogJ2NvbS50ZW5jZW50Lm1tJywgLy8g
+QXBwIOWMheWQjogICAgICBuYW1lOiAn5b6u5L+hJywKICAgICAgZ3JvdXBz
+OiBbCiAgICAgICAgewogICAgICAgICAga2V5OiAxLCAvLyDop4TliJnnu4Tl
+lK/kuIAga2V577yI5ZCM5LiAIEFwcCDlhoXkuI3lj6/ph43lpI3vvIkKICAg
+ICAgICAgIG5hbWU6ICflvq7kv6HlsI/nqIvluo/pooblj5YnLAogICAgICAg
+ICAgZGVzYzogJ+S7heeCueWHu+aPkOeOsOWIuOWlluWKseWNoeeJhyhyZXdh
+cmRDYXJkL2dpZnRDb250YWluZXIp5YaF55qE44CM6aKG5Y+W44CN5oyJ6ZKu
+77yM5o6S6Zmk6aKG5Yi45qe9KGNvdXBvbi1zbG90KeWGheeahOmihuWPlu+8
+m+aWh+ahiOeZveWQjeWNle+8jOmBv+WFjeivr+inpuivtOaYjuaWh+Wtl+S4
+juOAjOW3sumihuWPluOAjScsCiAgICAgICAgICAvLyDpmLLlor6/op6YgKyDp
+mLLlj43lpI3ngrnlh7vvvJrmr4/mrKHllKTphpLmnIDlpJrngrkgMSDmrKHv
+vIzku47pnZ7ljLnphY3nlYzpnaLliIflm57ljLnphY3nlYzpnaLml7bmiY3p
+h43nva7orqHmlbAKICAgICAgICAgIGFjdGlvbk1heGltdW06IDEsCiAgICAg
+ICAgICByZXNldE1hdGNoOiAnbWF0Y2gnLAogICAgICAgICAgcnVsZXM6IFsK
+ICAgICAgICAgICAgewogICAgICAgICAgICAgIC8vIOS4u+inhOWIme+8mumZ
+kOWumuWcqOaPkOeOsOWIuOWlluWKseWNoeeJhyhyZXdhcmRDYXJkKeWuueWZ
+qOWGhe+8mz5uIOS4uiLku7vmhI/mt7HluqbnpZblhYgi77yM5oqX5bCP56iL
+5bqP5pS554mI5pe25aSa5yYyF5LiA5bGC5biD5bGACiAgICAgICAgICAgICAg
+Ly8gaWQkPSDlj6rljLnphY3lkI7nvIDvvIzmipfmnoTlu7ogaGFzaCDliY3n
+vIDlj5jljJbvvIg1M2U1NjM5Ny0tcmV3YXJkQ2FyZCDihpIgaGFzaCDlj5jk
+uobku43lkb3kuK3vvIkKICAgICAgICAgICAgICAvLyAmJiAhKC4uLmNvdXBv
+bi1zbG90Ke+8muaOkumZpOmihuWIuOanveWGheeahOOAjOmihuWPluOAje+8
+jOmBv+WFjeivr+eCueOAjOmihuWIuOS4i+WNleW+l+aPkOeOsOWIuOOAjeea
+hOmihuWPlgogICAgICAgICAgICAgIC8vIGFjdGl2aXR5SWRzIOeUqOWJjee8
+gOWMuemFje+8iOWumOaWueaWh+aho++8mueVjOmdoklkIHN0YXJ0V2l0aCBh
+Y3Rpdml0eUlkcyDku7vkuIDpobnljbPljLnphY3vvInvvJoKICAgICAgICAg
+ICAgAvLyAgICcucGx1Z2luLmFwcGJyYW5kLnVpLkFwcEJyYW5kVUknIOS4
+gOasoeimhuebliBBcHBCcmFuZFVJMDAvMDEvMDIvLi4uIOaJgOacieWjs+WP
+mOS9k++8jAogICAgICAgICAgICAgIC8vICAg6YG/5YWN5b6u5L+h5q+P5qyh
+5o2i5aOz5pWw5a2X77yI5a6e5rWL5Ye6546w6L+HIEFwcEJyYW5kVUkwMOOA
+gUFwcEJyYW5kVUkwMe+8iemDveWvvOiHtOinhOWImeWkseaViAogICAgICAg
+ICAgICAgIGFjdGl2aXR5SWRzOiBbJy5wbHVnaW4uYXBwYnJhbmQudWkuQXBw
+QnJhbmRQbHVnaW5VSScsICcucGx1Z2luLmFwcGJyYW5kLnVpLkFwcEJyYW5k
+VUknXSwKICAgICAgICAgICAgICBtYXRjaGVzOgogICAgICAgICAgICAgICAg
+JyhbaWQkPSItLXJld2FyZENhcmQiXSA+biBUZXh0Vmlld1t2aXNpYmxlVG9V
+c2VyPXRydWVdW3RleHQ9IumihuWPliJ8fHRleHQ9Iueri+WNs+mihuWPliJ8
+fHRleHQ9IumprOS4iumihuWPliJ8fHRleHQ9IueCueWHu+mihuWPliJ8fHRl
+eHQ9IuS4gOmUrumihuWPliJdKSAmJiAhKFtpZCQ9Ii0taG9tZS1tY2gtY291
+cG9uLXNsb3QiXSA+biBUZXh0Vmlld1t2aXNpYmxlVG9Vc2VyPXRydWVdW3Rl
+eHQ9IumihuWPliJ8fHRleHQ9Iueri+WNs+mihuWPliJ8fHRleHQ9IumprOS4
+iumihuWPliJ8fHRleHQ9IueCueWHu+mihuWPliJ8fHRleHQ9IuS4gOmUrumi
+huWPliJdKScsCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAg
+ICAgICAgICAvLyDlhZzlupXop4TliJnvvJpyZXdhcmRDYXJkIOWuueWZqOii
+q+aUueWQjeaXtu+8jOmAgOWIsOWkluWxguekvOeJqeWuueWZqOS7jeWPr+WR
+veS4re+8m+WQjOagt+aOkumZpOmihuWIuOanvQogICAgICAgICAgICAgIGFj
+dGl2aXR5SWRzOiBbJy5wbHVnaW4uYXBwYnJhbmQudWkuQXBwQnJhbmRQbHVn
+aW5VSScsICcucGx1Z2luLmFwcGJyYW5kLnVpLkFwcEJyYW5kVUknXSwKICAg
+ICAgICAgICAgICBtYXRjaGVzOgogICAgICAgICAgICAgICAgJyhbaWQ9Imdp
+ZnRDb250YWluZXIiXSA+biBUZXh0Vmlld1t2aXNpYmxlVG9Vc2VyPXRydWVd
+W3RleHQ9IumihuWPliJ8fHRleHQ9Iueri+WNs+mihuWPliJ8fHRleHQ9Iump
+rOS4iumihuWPliJ8fHRleHQ9IueCueWHu+mihuWPliJ8fHRleHQ9IuS4gOmU
+rumihuWPliJdKSAmJiAhKFtpZCQ9Ii0taG9tZS1tY2gtY291cG9uLXNsb3Qi
+XSA+biBUZXh0Vmlld1t2aXNpYmxlVG9Vc2VyPXRydWVdW3RleHQ9IumihuWP
+liJ8fHRleHQ9Iueri+WNs+mihuWPliJ8fHRleHQ9IumprOS4iumihuWPliJ8
+fHRleHQ9IueCueWHu+mihuWPliJ8fHRleHQ9IuS4gOmUrumihuWPliJdKScs
+CiAgICAgICAgICAgIH0sCiAgICAgICAgICBdLAogICAgICAgIH0sCiAgICAg
+IF0sCiAgICB9LAogICAgLy8gUVHpgq7nrrHvvJrnv7vor5Hpgq7ku7YKICAg
+IHsKICAgICAgaWQ6ICdjb20udW5pb25wYXknLCAvLyBBcHAg5YyF5ZCNCiAg
+ICAgIG5hbWU6ICfkupHpl6rku5gnLAogICAgICBncm91cHM6IFsKICAgICAg
+ICB7CiAgICAgICAgICBrZXk6IDEsIC8vIOinhOWImee7hOWUr+S4gCBrZXnvvIjlkIzkuIAgQXBwIOWGheS4jeWPr+mHjeWkje+8
+iQogICAgICAgICAgbmFtZTogJ+iHquWKqOe/u+ivkemCruS7ticsCiAgICAgICAg
+ICAvLyDpmLLlvqrnjq/vvJrmr4/mrKHku47pnZ7ljLnphY3nlYzpnaLliIfl
+m57ljLnphY3nlYzpnaLmnIDlpJrngrkgMSDmrKEKICAgICAgICAgIC8vIOmB
+v+WFjSLnv7vor5Ei5Y+YIuW3sue/u+ivkSLlkI7lj43lpI3ngrnlh7sKICAg
+ICAgICAgIGFjdGlvbk1heGltdW06IDEsCiAgICAgICAgICByZXNldE1hdGNo
+OiAnbWF0Y2gnLAogICAgICAgICAgcnVsZXM6IFsKICAgICAgICAgICAgewog
+ICAgICAgICAgICAgIC8vIOeZveWQjeWNleaemuS4vu+8iOS4jeeUqCB0ZXh0
+Kj3vvInvvIzpgb/lhY3lkb3kuK0i57+76K+R57uT5p6cL+e/u+ivkeS4rS/l
+t7Lnv7vor5Ei562J6K+05piO5paH5a2XCiAgICAgICAgICAgICAgLy8g5b6F
+6KGl5YWF55yf5a6e5b+r54Wn5ZCO77yM5YaN5Y+g5Yqg5a655Zmo6ZSa54K5
+6L+b5LiA5q2l5pS256qECiAgICAgICAgICAgICAgbWF0Y2hlczogJ1RleHRW
+aWV3W3Zpc2libGVUb1VzZXI9dHJ1ZV1bdGV4dD0i57+76K+RInx8dGV4dD0i
+57+76K+R6YKu5Lu2Il0nLAogICAgICAgICAgICB9LAogICAgICAgICAgXSwK
+ICAgICAgICB9LAogICAgICBdLAogICAgfSwKICAgIC8vIOWkmuWkmuS5sOiP
+nO+8muWPuOacuuerr+W4uOingeaTjeS9nO+8iEZsdXR0ZXIg6aG16Z2i77yJ
+CiAgICB7CiAgICAgIGlkOiAnY29tLnh1bm1lbmcudG1zJywgLy8gQXBwIOWM
+heWQjQogICAgICBuYW1lOiAn5aSa5aSa5Lmw6I+cJywKICAgICAgZ3JvdXBz
+OiBbCiAgICAgICAgewogICAgICAgICAga2V5OiAxLAogICAgICAgICAgbmFt
+ZTogJ+eCueWHu+mrmOW+t+WcsOWbvicsCiAgICAgICAgICBkZXNjOiAnRmx1
+dHRlcumhtemdouW4uOmpu+ebkeWQr+8jOaOp+S7tuWxnuaAp+WPmOWMluWQ
+juiHquWKqOeCueWHu++8jOaUr+aMgeWPjeWkjeinpuWPkScsCiAgICAgICAg
+ICBhY3Rpb25DZDogMTMwMCwKICAgICAgICAgIC8vIOWunuaXtuWIt+aWsO+8
+mkZsdXR0ZXIg6aG16Z2i5LiN6Kem5Y+R5peg6Zqc56KN5LqL5Lu277yM5pW0
+5LiqIEFwcCDmiZPlvIDmnJ/pl7TkuLvliqjmn6Xor6LlsY/luZXoioLngrnv
+vIwKICAgICAgICAgIC8vIOmBv+WFjSLlv4XpobvmiYvliqjliIfpobXpnaLm
+iY3og73or4bliKvliLAi77yI5YC85Y+WIDI0aO+8jOetieaViOS6juW8gOed
+gOWwseaMgee7reWIt+aWsO+8iQogICAgICAgICAgZm9yY2VkVGltZTogODY0
+MDAwMDAsCiAgICAgICAgICByZXNldE1hdGNoOiAnbWF0Y2gnLAogICAgICAg
+ICAgcnVsZXM6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAgIGtleTog
+MSwKICAgICAgICAgICAgICBhY3Rpb246ICdjbGlja0NlbnRlcicsCiAgICAg
+ICAgICAgICAgWF0Y2hlczogWwogICAgICAgICAgICAgICAgJ1ZpZXdbZGVz
+Yz0i6auY5b635Zyw5Zu+Il1bbG9uZ0NsaWNrYWJsZT1mYWxzZV1bdmlzaWJs
+ZVRvVXNlcj10cnVlXScsCiAgICAgICAgICAgICAgXSwKICAgICAgICAgICAg
+ICBhY3Rpb25EZWxheTogMzAwLAogICAgICAgICAgICAgIGZhc3RRdWVyeTog
+ZmFsc2UsCiAgICAgICAgICAgICAgYWN0aXZpdHlJZHM6IFsKICAgICAgICAg
+ICAgICAgICdjb20ueHVubWVuZy50bXMuYWN0aXZpdHkuRmx1dHRlck1haW5B
+Y3Rpdml0eScsCiAgICAgICAgICAgICAgXSwKICAgICAgICAgICAgfSwKICAg
+ICAgICAgIF0sCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICBrZXk6
+IDIsCiAgICAgICAgICBuYW1lOiAn5LiK5Lyg6L2m54mMJywKICAgICAgICAg
+IGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIC8vIOWunuaXtuWIt+aWsO+8
+muWQjCBGbHV0dGVyIOmhtemdou+8jOmcgOS4u+WKqOafpeivouWxj+W5leiK
+gueCuQogICAgICAgICAgZm9yY2VkVGltZTogODY0MDAwMDAsCiAgICAgICAg
+ICBydWxlczogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgbWF0Y2hl
+czogWwogICAgICAgICAgICAgICAgJ1tkZXNjPSLkuIrkvKDovabniYwiXVt2
+aXNpYmxlVG9Vc2VyPXRydWVdW2xvbmdDbGlja2FibGU9ZmFsc2VdJywKICAg
+ICAgICAgICAgICBdLAogICAgICAgICAgICAgIGFjdGl2aXR5SWRzOiBbCiAg
+ICAgICAgICAgICAgICAnY29tLnh1bm1lbmcudG1zLmFjdGl2aXR5LkZsdXR0
+ZXJNYWluQWN0aXZpdHknLAogICAgICAgICAgICAgIF0sCiAgICAgICAgICAg
+IH0sCiAgICAgICAgICBdLAogICAgICAgIH0sCiAgICAgICAgewogICAgICAg
+ICAga2V5OiAzLAogICAgICAgICAgbmFtZTogJ+abtOaWsOW8ueeqlycsCiAg
+ICAgICAgICBkZXNjOiAnW0NoYW5nZU1lXeacrOinhOWImeeUsUdLROe9kemh
+teerr+WuoeafpeW3peWFt+eUn+aIkCcsCiAgICAgICAgICAvLyDlrp7ml7bl
+iLfmlrDvvJrlkIwgRmx1dHRlciDpobXpnaLvvIzpnIDkuLvliqjmn6Xor6Ll
+sY/luZXoioLngrkKICAgICAgICAgIGZvcmNlZFRpbWU6IDg2NDAwMDAwLAog
+ICAgICAgICAgcnVsZXM6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAg
+IG1hdGNoZXM6IFsKICAgICAgICAgICAgICAgICdbdmlkPSJjYW5jZWxJbWci
+XVtsb25nQ2xpY2thYmxlPWZhbHNlXVt2aXNpYmxlVG9Vc2VyPXRydWVdJywK
+ICAgICAgICAgICAgICBdLAogICAgICAgICAgICAgIGZhc3RRdWVyeTogdHJ1
+ZSwKICAgICAgICAgICAgICBhY3Rpdml0eUlkczogWwogICAgICAgICAgICAg
+ICAgJ2NvbS54dW5tZW5nLnRtcy5hY3Rpdml0eS5GbHV0dGVyTWFpbkFjdGl2
+aXR5JywKICAgICAgICAgICAgICBdLAogICAgICAgICAgICB9LAogICAgICAgICAgXSwKICAgICAgICB9LAogICAgICBdLAogICAgfSwKICAgIC8vIOWkmuWkmuS5sOiP
+nO+8muWPuOacuuerr+W4uOingeaTjeS9nO+8iEZsdXR0ZXIg6aG16Z2i77yJ
+CiAgICB7CiAgICAgIGlkOiAnY29tLnh1bm1lbmcudG1zJywgLy8gQXBwIOWM
+heWQjQogICAgICBuYW1lOiAn5aSa5aSa5Lmw6I+cJywKICAgICAgZ3JvdXBz
+OiBbCiAgICAgICAgewogICAgICAgICAga2V5OiAxLAogICAgICAgICAgbmFt
+ZTogJ+eCueWHu+mrmOW+t+WcsOWbvicsCiAgICAgICAgICBkZXNjOiAnRmx1
+dHRlcumhtemdouW4uOmpu+ebkeWQr+8jOaOp+S7tuWxnuaAp+WPmOWMluWQ
+juiHquWKqOeCueWHu++8jOaUr+aMgeWPjeWkjeinpuWPkScsCiAgICAgICAg
+ICBhY3Rpb25DZDogMTMwMCwKICAgICAgICAgIC8vIOWunuaXtuWIt+aWsO+8
+mkZsdXR0ZXIg6aG16Z2i5LiN6Kem5Y+R5peg6Zqc56KN5LqL5Lu277yM5pW0
+5LiqIEFwcCDmiZPlvIDmnJ/pl7TkuLvliqjmn6Xor6LlsY/luZXoioLngrnv
+vIwKICAgICAgICAgIC8vIOmBv+WFjSLlv4XpobvmiYvliqjliIfpobXpnaLm
+iY3og73or4bliKvliLAi77yI5YC85Y+WIDI0aO+8jOetieaViOS6juW8gOed
+gOWwseaMgee7reWIt+aWsO+8iQogICAgICAgICAgZm9yY2VkVGltZTogODY0
+MDAwMDAsCiAgICAgICAgICByZXNldE1hdGNoOiAnbWF0Y2gnLAogICAgICAg
+ICAgcnVsZXM6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAgIGtleTog
+MSwKICAgICAgICAgICAgICBhY3Rpb246ICdjbGlja0NlbnRlcicsCiAgICAg
+ICAgICAgICAgWF0Y2hlczogWwogICAgICAgICAgICAgICAgJ1ZpZXdbZGVz
+Yz0i6auY5b635Zyw5Zu+Il1bbG9uZ0NsaWNrYWJsZT1mYWxzZV1bdmlzaWJs
+ZVRvVXNlcj10cnVlXScsCiAgICAgICAgICAgICAgXSwKICAgICAgICAgICAg
+ICBhY3Rpb25EZWxheTogMzAwLAogICAgICAgICAgICAgIGZhc3RRdWVyeTog
+ZmFsc2UsCiAgICAgICAgICAgICAgYWN0aXZpdHlJZHM6IFsKICAgICAgICAg
+ICAgICAgICdjb20ueHVubWVuZy50bXMuYWN0aXZpdHkuRmx1dHRlck1haW5B
+Y3Rpdml0eScsCiAgICAgICAgICAgICAgXSwKICAgICAgICAgICAgfSwKICAg
+ICAgICAgIF0sCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICBrZXk6
+IDIsCiAgICAgICAgICBuYW1lOiAn5LiK5Lyg6L2m54mMJywKICAgICAgICAg
+IGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIC8vIOWunuaXtuWIt+aWsO+8
+muWQjCBGbHV0dGVyIOmhtemdou+8jOmcgOS4u+WKqOafpeivouWxj+W5leiK
+gueCuQogICAgICAgICAgZm9yY2VkVGltZTogODY0MDAwMDAsCiAgICAgICAg
+ICBydWxlczogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgbWF0Y2hl
+czogWwogICAgICAgICAgICAgICAgJ1tkZXNjPSLkuIrkvKDovabniYwiXVt2
+aXNpYmxlVG9Vc2VyPXRydWVdW2xvbmdDbGlja2FibGU9ZmFsc2VdJywKICAg
+ICAgICAgICAgICBdLAogICAgICAgICAgICAgIGFjdGl2aXR5SWRzOiBbCiAg
+ICAgICAgICAgICAgICAnY29tLnh1bm1lbmcudG1zLmFjdGl2aXR5LkZsdXR0
+ZXJNYWluQWN0aXZpdHknLAogICAgICAgICAgICAgIF0sCiAgICAgICAgICAg
+IH0sCiAgICAgICAgICBdLAogICAgICAgIH0sCiAgICAgICAgewogICAgICAg
+ICAga2V5OiAzLAogICAgICAgICAgbmFtZTogJ+abtOaWsOW8ueeqlycsCiAg
+ICAgICAgICBkZXNjOiAnW0NoYW5nZU1lXeacrOinhOWImeeUsUdLROe9kemh
+teerr+WuoeafpeW3peWFt+eUn+aIkCcsCiAgICAgICAgICAvLyDlrp7ml7bl
+iLfmlrDvvJrlkIwgRmx1dHRlciDpobXpnaLvvIzpnIDkuLvliqjmn6Xor6Ll
+sY/luZXoioLngrkKICAgICAgICAgIGZvcmNlZFRpbWU6IDg2NDAwMDAwLAog
+ICAgICAgICAgcnVsZXM6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAg
+IG1hdGNoZXM6IFsKICAgICAgICAgICAgICAgICdbdmlkPSJjYW5jZWxJbWci
+XVtsb25nQ2xpY2thYmxlPWZhbHNlXVt2aXNpYmxlVG9Vc2VyPXRydWVdJywK
+ICAgICAgICAgICAgICBdLAogICAgICAgICAgICAgIGZhc3RRdWVyeTogdHJ1
+ZSwKICAgICAgICAgICAgICBhY3Rpdml0eUlkczogWwogICAgICAgICAgICAg
+ICAgJ2NvbS54dW5tZW5nLnRtcy5hY3Rpdml0eS5GbHV0dGVyTWFpbkFjdGl2
+aXR5JywKICAgICAgICAgICAgICBdLAogICAgICAgICAgICB9LAogICAgICAgICAgXSwKICAgICAgICB9LAogICAgICBdLAogICAgfSwKICAgIC8vIOWkmuWkmuS5sOiP
+nO+8muWPuOacuuerr+W4uOingeaTjeS9nO+8iEZsdXR0ZXIg6aG16Z2i77yJ
+CiAgICB7CiAgICAgIGlkOiAnY29tLnh1bm1lbmcudG1zJywgLy8gQXBwIOWM
+heWQjQogICAgICBuYW1lOiAn5aSa5aSa5Lmw6I+cJywKICAgICAgZ3JvdXBz
+OiBbCiAgICAgICAgewogICAgICAgICAga2V5OiAxLAogICAgICAgICAgbmFt
+ZTogJ+eCueWHu+mrmOW+t+WcsOWbvicsCiAgICAgICAgICBkZXNjOiAnRmx1
+dHRlcumhtemdouW4uOmpu+ebkeWQr+8jOaOp+S7tuWxnuaAp+WPmOWMluWQ
+juiHquWKqOeCueWHu++8jOaUr+aMgeWPjeWkjeinpuWPkScsCiAgICAgICAg
+ICBhY3Rpb25DZDogMTMwMCwKICAgICAgICAgIC8vIOWunuaXtuWIt+aWsO+8
+mkZsdXR0ZXIg6aG16Z2i5LiN6Kem5Y+R5peg6Zqc56KN5LqL5Lu277yM5pW0
+5LiqIEFwcCDmiZPlvIDmnJ/pl7TkuLvliqjmn6Xor6LlsY/luZXoioLngrnv
+vIwKICAgICAgICAgIC8vIOmBv+WFjSLlv4XpobvmiYvliqjliIfpobXpnaLm
+iY3og73or4bliKvliLAi77yI5YC85Y+WIDI0aO+8jOetieaViOS6juW8gOed
+gOWwseaMgee7reWIt+aWsO+8iQogICAgICAgICAgZm9yY2VkVGltZTogODY0
+MDAwMDAsCiAgICAgICAgICByZXNldE1hdGNoOiAnbWF0Y2gnLAogICAgICAg
+ICAgcnVsZXM6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAgIGtleTog
+MSwKICAgICAgICAgICAgICBhY3Rpb246ICdjbGlja0NlbnRlcicsCiAgICAg
+ICAgICAgICAgWF0Y2hlczogWwogICAgICAgICAgICAgICAgJ1ZpZXdbZGVz
+Yz0i6auY5b635Zyw5Zu+Il1bbG9uZ0NsaWNrYWJsZT1mYWxzZV1bdmlzaWJs
+ZVRvVXNlcj10cnVlXScsCiAgICAgICAgICAgICAgXSwKICAgICAgICAgICAg
+ICBhY3Rpb25EZWxheTogMzAwLAogICAgICAgICAgICAgIGZhc3RRdWVyeTog
+ZmFsc2UsCiAgICAgICAgICAgICAgYWN0aXZpdHlJZHM6IFsKICAgICAgICAg
+ICAgICAgICdjb20ueHVubWVuZy50bXMuYWN0aXZpdHkuRmx1dHRlck1haW5B
+Y3Rpdml0eScsCiAgICAgICAgICAgICAgXSwKICAgICAgICAgICAgfSwKICAg
+ICAgICAgIF0sCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICBrZXk6
+IDIsCiAgICAgICAgICBuYW1lOiAn5LiK5Lyg6L2m54mMJywKICAgICAgICAg
+IGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywKICAgICAgICAgIGRlc2M6ICdbQ2hhbmdlTWV5pys6KeE5YiZ55SxR0tE572R6a156uv5a6h
+5p+l5bel5YW355Sf5oiQJywK          [truncated]
