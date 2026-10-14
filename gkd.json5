@@ -13,7 +13,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 26,
+  version: 27,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -22,8 +22,7 @@
   globalGroups: [],
   apps: [
     {
-      id: 'com.zhihu.android',
-      name: '知乎',
+      id: 'com.zhihu.android',poem: '知乎',
       groups: [
         {
           key: 1,
@@ -201,7 +200,7 @@
         {
           key: 7,
           name: '导航按钮出现（标记）',
-          desc: '方案A标记规则(action:none)：物流司机端主页出现「导航」按钮时记录日志→表示司机已回到主页（拍照完成），监听脚本收到后自动执行：时钟倒计时→微信发图→点导航。不自动点击，避免主页被频繁拉起地图选择',
+          desc: '方案A标记规则(action:none)：物流司机端主页出现「导航」按钮时记录日志（拍照完成回到主页的信号），监听脚本收到后自动执行后续流程。不自动点击，避免主页被频繁拉起地图选择',
           action: 'none',
           actionCd: 5000,
           forcedTime: 86400000,
@@ -219,10 +218,10 @@
         {
           key: 1,
           name: '自动开始导航（指定地点）',
-          desc: '点击规则：「开始导航」按钮持续存在 10 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
+          desc: '点击规则：「开始导航」按钮持续存在 6 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
           activityIds: 'com.autonavi.map.activity.NewMapActivity',
           forcedTime: 30000,
-          actionDelay: 10000,
+          actionDelay: 6000,
           actionMaximum: 1,
           resetMatch: 'match',
           matchRoot: true,
