@@ -22,7 +22,8 @@
   globalGroups: [],
   apps: [
     {
-      id: 'com.zhihu.android',poem: '知乎',
+      id: 'com.zhihu.android',
+      name: '知乎',
       groups: [
         {
           key: 1,
