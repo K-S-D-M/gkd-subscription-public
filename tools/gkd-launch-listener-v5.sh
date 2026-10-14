@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # ============================================
-# GKD 联动监听脚本 v5（可配置版）
+# GKD 联动监听脚本 v5.2（可配置版+水印照片触发）
 # 特点：
 #   1. 读取 /sdcard/Download/gkd-listener.conf 配置文件
 #   2. 支持时间段判断（如 19:00-21:00）
@@ -8,6 +8,7 @@
 #   4. 触发后执行 /sdcard/Download/gkd-listener-actions.conf 中的动作序列
 #   5. 每次触发实时重新读取配置（改配置无需重启）
 #   6. 单进程轮询，内存 ~4MB
+#   7. 水印照片数量检测：拍照完成后自动触发流程
 # ============================================
 
 CONF="/sdcard/Download/gkd-listener.conf"
@@ -22,6 +23,9 @@ LOG_DIR="/sdcard/Android/data/li.songe.gkd/files/log"
 SELF_LOG="/sdcard/Download/gkd-listener.log"
 DEDUP_SEC=60
 POLL_INTERVAL=0.5
+PHOTO_DIR="/sdcard/DCIM/pddtms/多多买菜水印相机"
+PHOTO_PATTERN="water_.*\\.jpg"
+PHOTO_DEDUP_SEC=300
 
 log() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "$SELF_LOG"
@@ -46,6 +50,15 @@ in_time_window() {
     return 0
   fi
   return 1
+}
+
+# 统计水印照片数量
+count_photos() {
+  if [ -d "$PHOTO_DIR" ]; then
+    ls "$PHOTO_DIR" 2>/dev/null | grep -c "$PHOTO_PATTERN"
+  else
+    echo 0
+  fi
 }
 
 # 执行动作序列
@@ -98,8 +111,14 @@ log "GKD v5 监听启动"
 log "配置: $CONF"
 log "关键词: $TRIGGER_KEYWORDS"
 log "时间段: ${START_HOUR}:00-${END_HOUR}:00"
+log "照片目录: $PHOTO_DIR"
 
 LAST_TRIGGER=0
+
+# 记录初始照片数量（作为拍照触发基线）
+PHOTO_BASELINE=$(count_photos)
+log "初始照片数量: $PHOTO_BASELINE"
+LAST_PHOTO_TRIGGER=0
 
 TODAY=$(date +%Y%m%d)
 LOG_FILE="$LOG_DIR/gkd-$TODAY.log"
@@ -113,6 +132,7 @@ fi
 log "初始偏移: $OFFSET"
 
 while true; do
+  # 1) GKD 日志关键词触发
   if [ -f "$LOG_FILE" ]; then
     SIZE=$(wc -c < "$LOG_FILE" 2>/dev/null)
     if [ "$SIZE" -gt "$OFFSET" ]; then
@@ -127,5 +147,21 @@ while true; do
       OFFSET=$SIZE
     fi
   fi
+
+  # 2) 水印照片数量检测（拍照完成触发）
+  CUR=$(count_photos)
+  if [ "$CUR" -gt "$PHOTO_BASELINE" ]; then
+    NOW=$(date +%s)
+    if [ $((NOW - LAST_PHOTO_TRIGGER)) -ge "$PHOTO_DEDUP_SEC" ]; then
+      LAST_PHOTO_TRIGGER=$NOW
+      log ">>> 检测到水印照片新增（基线$PHOTO_BASELINE→现$CUR），执行流程"
+      PHOTO_BASELINE=$CUR
+      run_actions
+    else
+      # 去重窗口内，只更新基线不触发
+      PHOTO_BASELINE=$CUR
+    fi
+  fi
+
   sleep "$POLL_INTERVAL"
 done
