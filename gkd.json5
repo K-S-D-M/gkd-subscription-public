@@ -7,7 +7,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 25,
+  version: 26,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -95,6 +95,16 @@
       groups: [
         {
           key: 1,
+          name: '进入中邮封签拍照反馈群',
+          desc: '方案A：标记规则（action=none），配合外部监听脚本在物流流程中自动进入「中邮-封签拍照反馈」群并发送水印照片。仅在微信主界面聊天列表出现该群名时标记一次，不自动点击，避免误触',
+          actionMaximum: 1,
+          resetMatch: 'app',
+          rules: [
+            { matches: '[text="中邮-封签拍照反馈"][visibleToUser=true]', fastQuery: true, activityIds: ['.ui.LauncherUI'] },
+          ],
+        },
+        {
+          key: 2,
           name: '微信小程序领取',
           desc: '仅点击提现券奖励卡片(rewardCard/giftContainer)内的「领取」按钮，排除领券槽(coupon-slot)内的领取；文案白名单，避免误触说明文字与「已领取」',
           actionMaximum: 1,
@@ -179,6 +189,35 @@
           resetMatch: 'match',
           rules: [
             { key: 1, action: 'clickCenter', matches: ['@[desc="确认出库"][clickable=true][visibleToUser=true]'], actionDelay: 500, fastQuery: false, activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
+          ],
+        },
+        {
+          key: 7,
+          name: '点击导航按钮',
+          desc: '方案A：物流司机端主页点「导航」拉起地图选择，配合高德地图规则自动选高德。仅在多多买菜主页出现「导航」时点击',
+          actionCd: 3000,
+          actionMaximum: 1,
+          forcedTime: 86400000,
+          resetMatch: 'match',
+          rules: [
+            { key: 1, action: 'clickCenter', matches: ['View[desc="导航"][clickable=true][visibleToUser=true]'], actionDelay: 300, fastQuery: false, activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'com.android.deskclock',
+      name: '时钟',
+      groups: [
+        {
+          key: 1,
+          name: '计时Tab-倒计时55分钟',
+          desc: '方案A：物流流程中自动切到「计时」Tab并点「开始倒计时」（55分钟为记忆值）。仅在时钟倒计时页面出现「开始倒计时」按钮时执行',
+          actionMaximum: 1,
+          resetMatch: 'app',
+          rules: [
+            { action: 'clickCenter', matches: ['[desc="计时"][clickable=true][visibleToUser=true]'], activityIds: ['com.android.deskclock.DeskClockTabActivity'] },
+            { action: 'clickCenter', matches: ['[desc="开始倒计时"][clickable=true][visibleToUser=true]'], actionDelay: 1500, activityIds: ['com.android.deskclock.DeskClockTabActivity'] },
           ],
         },
       ],
