@@ -13,7 +13,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 27,
+  version: 28,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -22,8 +22,7 @@
   globalGroups: [],
   apps: [
     {
-      id: 'com.zhihu.android',
-      name: '知乎',
+      id: 'com.zhihu.android', name: '知乎',
       groups: [
         {
           key: 1,
@@ -237,6 +236,31 @@
                 '[desc$="一路发大型停车场"]',
                 '[desc$="江西省南昌市南昌县高新南大道116号"]',
               ],
+            },
+          ],
+        },
+        // 导航结束后的行程总结/广告页：识别特征文案后自动返回退出
+        {
+          key: 2,
+          name: '结束导航退出广告页',
+          desc: '导航结束后的行程总结+广告页（代驾/酒店/榜单推荐），识别专属文案后自动 back 退出；activityIds 与路线页相同(NewMapActivity)，仅靠文案区分，不会在规划路线/导航中误触发',
+          // 只退一次；从非匹配界面切回匹配界面（下次导航结束）才重置
+          actionMaximum: 1,
+          resetMatch: 'match',
+          // 防连退：触发后退回其它页面，冷却 5 秒内不再次匹配
+          actionCd: 5000,
+          rules: [
+            {
+              key: 1,
+              // back：向系统发起返回事件（官方 action），退出广告页
+              action: 'back',
+              // 特征文案白名单（快照 1791990170732 实测命中）：
+              //  "找到目的地了吗"：导航结束满意度询问
+              //  "最高(公里/小时)"：行程数据标题
+              //  "酒后不开车，代驾用高德"：代驾广告文案
+              // 三者均为导航结束页专属、不含动态数字和地名，普通路线页/导航中不出现
+              matches: '[text="找到目的地了吗"||text="最高(公里/小时)"||text="酒后不开车，代驾用高德"]',
+              activityIds: 'com.autonavi.map.activity.NewMapActivity',
             },
           ],
         },
