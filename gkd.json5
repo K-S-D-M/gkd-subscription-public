@@ -2,6 +2,12 @@
 // GKD（搞快点）个人订阅规则文件
 // 语法：JSON5（键名可省略引号，支持单引号和注释）
 // 官方格式文档：https://gkd.li/guide/subscription
+//
+// 方案A说明：
+//   1. 标记规则(action:none)：匹配到只记日志，不点击；由外部监听脚本
+//      监听日志关键词后按时序执行流程（如微信发图、时钟倒计时等）
+//   2. 点击规则(clickCenter)：仅在对应控件出现时点击，安全可用；
+//      无 root 设备也可通过 GKD 无障碍服务直接使用
 // ============================================
 
 {
@@ -95,8 +101,9 @@
       groups: [
         {
           key: 1,
-          name: '进入中邮封签拍照反馈群',
-          desc: '方案A：标记规则（action=none），配合外部监听脚本在物流流程中自动进入「中邮-封签拍照反馈」群并发送水印照片。仅在微信主界面聊天列表出现该群名时标记一次，不自动点击，避免误触',
+          name: '进入中邮封签拍照反馈群（标记）',
+          desc: '方案A标记规则(action:none)：微信聊天列表出现「中邮-封签拍照反馈」群时记录日志，由监听脚本自动进入群聊并发送水印照片。不自动点击，避免平时误触',
+          action: 'none',
           actionMaximum: 1,
           resetMatch: 'app',
           rules: [
@@ -144,7 +151,7 @@
         {
           key: 1,
           name: '点击高德地图',
-          desc: 'Flutter页面常驻监听，控件属性变化后自动点击，支持反复触发',
+          desc: '点击规则：Flutter页面常驻监听，弹出地图选择时自动点「高德地图」，支持反复触发',
           actionCd: 1300,
           forcedTime: 86400000,
           resetMatch: 'match',
@@ -182,7 +189,7 @@
         {
           key: 6,
           name: '点击出仓库',
-          desc: 'Flutter页面，控件原地属性变化，常驻监听，确认出库状态改变自动点击',
+          desc: '点击规则：Flutter页面，控件原地属性变化，常驻监听，确认出库状态改变自动点击',
           actionCd: 1300,
           actionMaximum: 1,
           forcedTime: 86400000,
@@ -193,31 +200,14 @@
         },
         {
           key: 7,
-          name: '点击导航按钮',
-          desc: '方案A：物流司机端主页点「导航」拉起地图选择，配合高德地图规则自动选高德。仅在多多买菜主页出现「导航」时点击',
-          actionCd: 3000,
-          actionMaximum: 1,
+          name: '导航按钮出现（标记）',
+          desc: '方案A标记规则(action:none)：物流司机端主页出现「导航」按钮时记录日志→表示司机已回到主页（拍照完成），监听脚本收到后自动执行：时钟倒计时→微信发图→点导航。不自动点击，避免主页被频繁拉起地图选择',
+          action: 'none',
+          actionCd: 5000,
           forcedTime: 86400000,
           resetMatch: 'match',
           rules: [
-            { key: 1, action: 'clickCenter', matches: ['View[desc="导航"][clickable=true][visibleToUser=true]'], actionDelay: 300, fastQuery: false, activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'com.android.deskclock',
-      name: '时钟',
-      groups: [
-        {
-          key: 1,
-          name: '计时Tab-倒计时55分钟',
-          desc: '方案A：物流流程中自动切到「计时」Tab并点「开始倒计时」（55分钟为记忆值）。仅在时钟倒计时页面出现「开始倒计时」按钮时执行',
-          actionMaximum: 1,
-          resetMatch: 'app',
-          rules: [
-            { action: 'clickCenter', matches: ['[desc="计时"][clickable=true][visibleToUser=true]'], activityIds: ['com.android.deskclock.DeskClockTabActivity'] },
-            { action: 'clickCenter', matches: ['[desc="开始倒计时"][clickable=true][visibleToUser=true]'], actionDelay: 1500, activityIds: ['com.android.deskclock.DeskClockTabActivity'] },
+            { key: 1, action: 'none', matches: ['View[desc="导航"][clickable=true][visibleToUser=true]'], fastQuery: false, activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
           ],
         },
       ],
@@ -229,7 +219,7 @@
         {
           key: 1,
           name: '自动开始导航（指定地点）',
-          desc: '「开始导航」按钮持续存在 10 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
+          desc: '点击规则：「开始导航」按钮持续存在 10 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
           activityIds: 'com.autonavi.map.activity.NewMapActivity',
           forcedTime: 30000,
           actionDelay: 10000,
