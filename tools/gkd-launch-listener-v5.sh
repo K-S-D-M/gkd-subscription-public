@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # ============================================
-# GKD 联动监听脚本 v5.2（可配置版+水印照片触发）
+# GKD 联动监听脚本 v5.3（可配置版+水印照片触发）
 # 特点：
 #   1. 读取 /sdcard/Download/gkd-listener.conf 配置文件
 #   2. 支持时间段判断（如 19:00-21:00）
@@ -8,7 +8,7 @@
 #   4. 触发后执行 /sdcard/Download/gkd-listener-actions.conf 中的动作序列
 #   5. 每次触发实时重新读取配置（改配置无需重启）
 #   6. 单进程轮询，内存 ~4MB
-#   7. 水印照片数量检测：拍照完成后自动触发流程
+#   7. 水印照片数量检测：拍照完成后自动触发流程（同样遵守时间段）
 # ============================================
 
 CONF="/sdcard/Download/gkd-listener.conf"
@@ -156,7 +156,13 @@ while true; do
       LAST_PHOTO_TRIGGER=$NOW
       log ">>> 检测到水印照片新增（基线$PHOTO_BASELINE→现$CUR），执行流程"
       PHOTO_BASELINE=$CUR
-      run_actions
+      # 照片检测也遵守时间段限制
+      load_config
+      if in_time_window; then
+        run_actions
+      else
+        log "当前不在启用时间段内，跳过触发"
+      fi
     else
       # 去重窗口内，只更新基线不触发
       PHOTO_BASELINE=$CUR
