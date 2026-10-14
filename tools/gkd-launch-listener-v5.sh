@@ -4,7 +4,7 @@
 # 特点：
 #   1. 读取 /sdcard/Download/gkd-listener.conf 配置文件
 #   2. 支持时间段判断（如 19:00-21:00）
-#   3. 支持多触发关键词
+#   3. 支持多触发关键词（| 分隔）
 #   4. 触发后执行 /sdcard/Download/gkd-listener-actions.conf 中的动作序列
 #   5. 每次触发实时重新读取配置（改配置无需重启）
 #   6. 单进程轮询，内存 ~4MB
@@ -32,10 +32,12 @@ load_config() {
   if [ -f "$CONF" ]; then
     . "$CONF" 2>/dev/null
   fi
+  # 若配置中未定义则保留默认值（已在文件头定义）
 }
 
 # 是否在启用时间段内
 in_time_window() {
+  # 未限制时间段
   if [ "$START_HOUR" = "-1" ] || [ -z "$START_HOUR" ]; then
     return 0
   fi
@@ -53,12 +55,14 @@ run_actions() {
     log "动作文件不存在：$ACTIONS"
     return
   fi
+  # 逐行读取（跳过空行和注释）
   while IFS= read -r line; do
     line=$(echo "$line" | sed 's/^[ \t]*//')
     case "$line" in
       ''|'#'*) continue ;;
     esac
     log "执行: $line"
+    # 支持 sleep 命令由脚本处理（避免子 shell 阻塞读取）
     case "$line" in
       sleep*)
         eval "$line" ;;
@@ -72,6 +76,7 @@ run_actions() {
 
 # 触发处理
 handle_trigger() {
+  # 先重新加载配置（实时生效）
   load_config
   if ! in_time_window; then
     log "当前不在启用时间段内，跳过触发"
@@ -87,6 +92,7 @@ handle_trigger() {
   run_actions
 }
 
+# 主逻辑
 load_config
 log "GKD v5 监听启动"
 log "配置: $CONF"
@@ -110,10 +116,13 @@ while true; do
   if [ -f "$LOG_FILE" ]; then
     SIZE=$(wc -c < "$LOG_FILE" 2>/dev/null)
     if [ "$SIZE" -gt "$OFFSET" ]; then
+      # 读取新增内容逐行处理，多关键词用 | 分隔逐个检查
       tail -c +$((OFFSET + 1)) "$LOG_FILE" 2>/dev/null | while read line; do
-        case "$line" in
-          *"$TRIGGER_KEYWORDS"*) handle_trigger ;;
-        esac
+        for kw in $(echo "$TRIGGER_KEYWORDS" | tr '|' '\n'); do
+          case "$line" in
+            *"$kw"*) handle_trigger; break ;;
+          esac
+        done
       done
       OFFSET=$SIZE
     fi
