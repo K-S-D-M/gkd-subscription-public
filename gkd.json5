@@ -13,7 +13,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 29,
+  version: 30,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -262,6 +262,36 @@
               // 注意：不加"去看看"等宽泛词，避免路线页沿途推荐卡片误触发返回
               matches: '[text="找到目的地了吗"||text="最高(公里/小时)"||text="酒后不开车，代驾用高德"||text="省心更省钱"||text="惊喜优惠，全网比价，一键出发"]',
               activityIds: 'com.autonavi.map.activity.NewMapActivity',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'com.netease.cloudmusic',
+      name: '网易云音乐',
+      groups: [
+        // 黑胶SVIP升级付费弹窗（识别到使用耳机听歌后弹出）：识别专属文案后自动返回关闭
+        {
+          key: 1,
+          name: '关闭SVIP升级弹窗',
+          desc: '识别黑胶SVIP付费弹窗专属文案（协议提示/优惠说明）后自动 back 关闭；弹窗右上角关闭按钮在无障碍树中无文字/desc/id 可匹配（RN 绘制），故用返回键；不用"支付方式/限时特惠"等通用词，避免商城页误触',
+          // 只关一次；从非匹配界面切回匹配界面（下次弹窗）才重置
+          actionMaximum: 1,
+          resetMatch: 'match',
+          // 防连退：关闭后退回其它页面，冷却 3 秒内不再次匹配
+          actionCd: 3000,
+          rules: [
+            {
+              key: 1,
+              // back：向系统发起返回事件（官方 action），关闭弹窗
+              action: 'back',
+              // 特征文案白名单（快照 1792056133486 实测命中，均为付费弹窗专属）：
+              //  "开通前请阅读"：底部协议提示
+              //  "优惠仅限1次"：促销说明
+              //  "黑胶SVIP·升级N天" 含动态天数不用；"支付方式/限时特惠"通用词不用（防误触）
+              matches: '[text="开通前请阅读"||text="优惠仅限1次"]',
+              activityIds: 'com.netease.cloudmusic.music.biz.rn.activity.MainProcessLayerReactNativeActivity',
             },
           ],
         },
