@@ -9,11 +9,10 @@
 //   2. 点击规则(clickCenter)：仅在对应控件出现时点击，安全可用；
 //      无 root 设备也可通过 GKD 无障碍服务直接使用
 // ============================================
-
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 30,
+  version: 31,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -86,10 +85,16 @@
         {
           key: 1,
           name: '自动连播',
+          // v31 优化：抖音播放页滑动时无障碍事件不频繁（页面近乎"静止"），
+          // 导致 GKD 只在收到新事件时才检测，识别"自动连播"开关很慢。
+          // 1. forcedTime: 30000 —— 页面静止无事件时每 30 秒主动轮询一次，解决识别慢的根因；
+          // 2. matches 两侧加 [visibleToUser=true] —— 只匹配用户可见的"自动连播"文案和开关，
+          //    过滤列表滑动中不可见的节点，避免误匹配。
+          forcedTime: 30000,
           actionMaximum: 1,
           resetMatch: 'match',
           rules: [
-            { matches: '[text="自动连播"] + Switch[checked=false]', fastQuery: true, activityIds: '.main.MainActivity' },
+            { matches: '[text="自动连播"][visibleToUser=true] + Switch[checked=false][visibleToUser=true]', fastQuery: true, activityIds: '.main.MainActivity' },
           ],
         },
       ],
