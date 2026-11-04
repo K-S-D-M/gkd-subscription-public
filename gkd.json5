@@ -2,220 +2,332 @@
 // GKD（搞快点）个人订阅规则文件
 // 语法：JSON5（键名可省略引号，支持单引号和注释）
 // 官方格式文档：https://gkd.li/guide/subscription
-//
-// 方案A说明：
-//   1. 标记规则(action:none)：匹配到只记日志，不点击；由外部监听脚本
-//      监听日志关键词后按时序执行流程（如微信发图、时钟倒计时等）
-//   2. 点击规则(clickCenter)：仅在对应控件出现时点击，安全可用；
-//      无 root 设备也可通过 GKD 无障碍服务直接使用
 // ============================================
+
 {
+  // 订阅唯一 ID（数字，自行指定一个即可，不可与其它订阅重复）
   id: 233001,
+
+  // 订阅名称（显示在 GKD 订阅列表中）
   name: 'KSDM 个人订阅',
-  version: 31,
+
+  // 订阅版本号（每次更新规则后 +1，用于版本检测）
+  version: 20,
+
+  // 作者名称
   author: 'KSDM',
+
+  // 订阅文件远程地址：GKD App 通过此地址拉取订阅
+  // 规则源码存于 private 仓库 gkd-subscription，经 GitHub Action 同步到此 public Pages 仓库对外发布
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
+
+  // 版本检测文件地址（相对路径则相对于 updateUrl 所在目录）
+  // gkd.version.json5 文件已一并创建，用于快速检查版本号，减少流量消耗
   checkUpdateUrl: './gkd.version.json5',
+
+  // 支持/反馈链接（指向 public 仓库）
   supportUri: 'https://github.com/K-S-D-M/gkd-subscription-public',
+
+  // 规则分类（可选，用于在 GKD 中按分类开关规则组）
   categories: [],
+
+  // 全局规则（不绑定具体 App，对所有应用生效）
   globalGroups: [],
+
+  // 应用规则（每个元素对应一个 App 的规则集合）
   apps: [
+    // 示例：知乎开屏广告跳过规则
     {
-      id: 'com.zhihu.android', name: '知乎',
+      id: 'com.zhihu.android', // App 包名（应用信息页可查看）
+      name: '知乎',
       groups: [
         {
-          key: 1,
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
           name: '开屏广告',
           rules: [
-            { matches: '[text="跳过"||text="跳过广告"][visibleToUser=true]' },
+            {
+              // 匹配规则：查找文本为"跳过"且可见的节点并点击
+              // 若你的设备上无效，可参考快照调试后调整 matches 表达式
+              matches: '[text*="跳过"][text.length<10][visibleToUser=true]',
+            },
           ],
         },
       ],
     },
+    // 听友FM：开屏广告跳过规则
     {
-      id: 'com.zhiyinboke.yinyinting.www',
+      id: 'com.zhiyinboke.yinyinting.www', // App 包名
       name: '听友FM',
       groups: [
         {
-          key: 1,
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
           name: '点击跳过',
           rules: [
-            { matches: ['[text="跳过"][visibleToUser=true]'], fastQuery: true, activityIds: ['com.listen.adsdk.ui.SplashAdActivity'] },
+            {
+              matches: [
+                '[text*="跳过"]',
+              ],
+              fastQuery: true,
+              activityIds: [
+                'com.listen.adsdk.ui.SplashAdActivity',
+              ],
+            },
           ],
         },
         {
-          key: 2,
+          key: 2, // 同一 App 内 key 从 1 递增，已用 1，这里用 2
           name: '点击播放',
-          actionMaximum: 1,
+          // 限制只点一次：避免 desc 在「播放/暂停」间切换导致反复点击
           matchTime: 10000,
+          actionMaximum: 1,
           resetMatch: 'app',
           rules: [
-            { matches: '[desc="播放"]', activityIds: '.activity.MainActivity' },
+            {
+              activityIds: '.activity.MainActivity',
+              matches: '[desc="播放"]',
+            },
           ],
         },
       ],
     },
+    // 云闪付：查看余额（点击显示按钮）
     {
-      id: 'com.unionpay',
+      id: 'com.unionpay', // App 包名
       name: '云闪付',
       groups: [
         {
-          key: 1,
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
           name: '云闪付查看余额',
-          actionMaximum: 1,
           matchTime: 10000,
+          actionMaximum: 1,
           resetMatch: 'app',
           rules: [
-            { matches: '[desc="显示"]', fastQuery: true, activityIds: '.activity.UPActivityMain' },
+            {
+              fastQuery: true,
+              activityIds: '.activity.UPActivityMain',
+              matches: '[desc="显示"]',
+            },
           ],
         },
+        // 云闪付：关闭（React Native 弹窗关闭按钮）
         {
           key: 2,
           name: '关闭',
           rules: [
-            { matches: '@ImageView < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < FrameLayout < RelativeLayout < [id="android:id/content"]', fastQuery: true, activityIds: '.activity.react.UPActivityReactNative' },
+            {
+              fastQuery: true,
+              activityIds: '.activity.react.UPActivityReactNative',
+              matches:
+                '@ImageView < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < FrameLayout < RelativeLayout < [id="android:id/content"]',
+            },
           ],
         },
       ],
     },
+    // 抖音：自动连播
     {
-      id: 'com.ss.android.ugc.aweme',
+      id: 'com.ss.android.ugc.aweme', // App 包名
       name: '抖音',
       groups: [
         {
-          key: 1,
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
           name: '自动连播',
-          // v31 优化：抖音播放页滑动时无障碍事件不频繁（页面近乎"静止"），
-          // 导致 GKD 只在收到新事件时才检测，识别"自动连播"开关很慢。
-          // 1. forcedTime: 30000 —— 页面静止无事件时每 30 秒主动轮询一次，解决识别慢的根因；
-          // 2. matches 两侧加 [visibleToUser=true] —— 只匹配用户可见的"自动连播"文案和开关，
-          //    过滤列表滑动中不可见的节点，避免误匹配。
-          forcedTime: 30000,
-          actionMaximum: 1,
-          resetMatch: 'match',
           rules: [
-            { matches: '[text="自动连播"][visibleToUser=true] + Switch[checked=false][visibleToUser=true]', fastQuery: true, activityIds: '.main.MainActivity' },
+            {
+              fastQuery: true,
+              activityIds: '.main.MainActivity',
+              // 通过"自动连播"文本定位其右侧的 Switch 开关，仅在未开启(checked=false)时点击，避免误关
+              matches: '[text*="自动连播"] + Switch[checked=false]',
+            },
           ],
         },
       ],
     },
+    // 微信：小程序领取
     {
-      id: 'com.tencent.mm',
+      id: 'com.tencent.mm', // App 包名
       name: '微信',
       groups: [
         {
-          key: 1,
-          name: '进入中邮封签拍照反馈群（标记）',
-          desc: '方案A标记规则(action:none)：微信聊天列表出现「中邮-封签拍照反馈」群时记录日志，由监听脚本自动进入群聊并发送水印照片。不自动点击，避免平时误触',
-          action: 'none',
-          actionMaximum: 1,
-          resetMatch: 'app',
-          rules: [
-            { matches: '[text="中邮-封签拍照反馈"][visibleToUser=true]', fastQuery: true, activityIds: ['.ui.LauncherUI'] },
-          ],
-        },
-        {
-          key: 2,
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
           name: '微信小程序领取',
-          desc: '仅点击提现券奖励卡片(rewardCard/giftContainer)内的「领取」按钮，排除领券槽(coupon-slot)内的领取；文案白名单，避免误触说明文字与「已领取」',
+          desc: '仅点击领券卡片(rewardCard/giftContainer)内的「领取」按钮；文案白名单，避免误触说明文字与「已领取」',
+          // 防误触 + 防反复点击：每次唤醒最多点 1 次，从非匹配界面切回匹配界面时才重置计数
           actionMaximum: 1,
           resetMatch: 'match',
           rules: [
             {
-              activityIds: ['.plugin.appbrand.ui.AppBrandPluginUI', '.plugin.appbrand.ui.AppBrandUI'],
-              matches: '([id$="--rewardCard"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"]) && !([id$="--home-mch-coupon-slot"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"])',
+              // 主规则：限定在领券卡片容器内；>n 为"任意深度祖先"，抗小程序改版时多包一层布局
+              // id$= 只匹配后缀，抗构建 hash 前缀变化（53e56397--rewardCard → hash 变了仍命中）
+              activityIds: '.plugin.appbrand.ui.AppBrandPluginUI',
+              matches:
+                '[id$="--rewardCard"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"]',
             },
             {
-              activityIds: ['.plugin.appbrand.ui.AppBrandPluginUI', '.plugin.appbrand.ui.AppBrandUI'],
-              matches: '([id="giftContainer"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"]) && !([id$="--home-mch-coupon-slot"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"])',
+              // 兜底规则：rewardCard 容器被改名时，退到外层礼物容器仍可命中
+              activityIds: '.plugin.appbrand.ui.AppBrandPluginUI',
+              matches:
+                '[id="giftContainer"] >n TextView[visibleToUser=true][text="领取"||text="立即领取"||text="马上领取"||text="点击领取"||text="一键领取"]',
             },
           ],
         },
       ],
     },
+    // X（Twitter）：点击翻译帖子
     {
-      id: 'com.tencent.androidqqmail',
-      name: 'QQ邮箱',
+      id: 'com.twitter.android',
+      name: 'X',
       groups: [
         {
           key: 1,
-          name: '自动翻译邮件',
+          name: '点击翻译',
+          desc: '点击帖子下方的「翻译帖子」按钮。文案白名单枚举，不命中「翻译自越南语」「显示原文」等已翻译状态文案，点击后文案变更也不会反复点',
+          // 防止反复点击：同一条帖子的翻译按钮点一次即止，切走再回来才重置
           actionMaximum: 1,
           resetMatch: 'match',
           rules: [
-            { matches: 'TextView[visibleToUser=true][text="翻译"||text="翻译邮件"]' },
+            {
+              // X 客户端为 Compose UI，节点无 id/vid 可锚定，全部靠 text 精确定位。
+              // 实测快照（com.x.android.main.MainActivity，122 节点）：
+              //   未翻译状态 = 「翻译帖子」TextView（clickable=true）
+              //   已翻译状态 = 「翻译自越南语」(text) + 「显示原文」(clickable=true)
+              // 因此只用白名单精确文案枚举，不用 text*= 包含匹配
+              // （否则会命中「翻译自越南语」「翻译说明」「暂不翻译」「翻译记录」等）
+              activityIds: 'com.x.android.main.MainActivity',
+              matches:
+                '[text="翻译帖子"||text="翻译推文"||text="翻译此帖子"][clickable=true][visibleToUser=true]',
+            },
           ],
         },
       ],
     },
+    // QQ邮箱：翻译邮件
     {
-      id: 'com.xunmeng.tms',
+      id: 'com.tencent.androidqqmail', // App 包名
+      name: 'QQ邮箱',
+      groups: [
+        {
+          key: 1, // 规则组唯一 key（同一 App 内不可重复）
+          name: '自动翻译邮件',
+          rules: [
+            {
+              // 匹配所有含"翻译"的文本节点并点击
+              matches: 'TextView[text*="翻译"]',
+            },
+          ],
+        },
+      ],
+    },
+    // 多多买菜：司机端常见操作（Flutter 页面）
+    {
+      id: 'com.xunmeng.tms', // App 包名
       name: '多多买菜',
       groups: [
         {
           key: 1,
           name: '点击高德地图',
-          desc: '点击规则：Flutter页面常驻监听，弹出地图选择时自动点「高德地图」，支持反复触发',
+          desc: 'Flutter页面常驻监听，控件属性变化后自动点击，支持反复触发',
           actionCd: 1300,
+          // 实时刷新：Flutter 页面不触发无障碍事件，整个 App 打开期间主动查询屏幕节点，
+          // 避免"必须手动切页面才能识别到"（值取 24h，等效于开着就持续刷新）
           forcedTime: 86400000,
           resetMatch: 'match',
           rules: [
-            { key: 1, action: 'clickCenter', matches: ['View[desc="高德地图"][longClickable=false][visibleToUser=true]'], actionDelay: 300, fastQuery: false, activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
+            {
+              key: 1,
+              action: 'clickCenter',
+              matches: [
+                'View[desc="高德地图"][longClickable=false][visibleToUser=true]',
+              ],
+              actionDelay: 300,
+              fastQuery: false,
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
           ],
         },
         {
           key: 2,
           name: '上传车牌',
           desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
           forcedTime: 86400000,
           rules: [
-            { matches: ['[desc="上传车牌"][visibleToUser=true][longClickable=false]'], activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
+            {
+              matches: [
+                '[desc="上传车牌"][visibleToUser=true][longClickable=false]',
+              ],
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
           ],
         },
         {
           key: 3,
           name: '更新弹窗',
           desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
           forcedTime: 86400000,
           rules: [
-            { matches: ['[vid="cancelImg"][longClickable=false][visibleToUser=true]'], fastQuery: true, activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
+            {
+              matches: [
+                '[vid="cancelImg"][longClickable=false][visibleToUser=true]',
+              ],
+              fastQuery: true,
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
           ],
         },
         {
           key: 5,
           name: '人脸识别',
           desc: '[ChangeMe]本规则由GKD网页端审查工具生成',
+          // 实时刷新：同 Flutter 页面，需主动查询屏幕节点
           forcedTime: 86400000,
           rules: [
-            { matches: ['[desc="人脸认证"][visibleToUser=true][clickable=true]'], activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
+            {
+              matches: [
+                '[desc="人脸认证"][visibleToUser=true][clickable=true]',
+              ],
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
           ],
         },
         {
           key: 6,
           name: '点击出仓库',
-          desc: '点击规则：Flutter页面，控件原地属性变化，常驻监听，确认出库状态改变自动点击',
+          desc: 'Flutter页面，控件原地属性变化，常驻监听，确认出库状态改变自动点击',
           actionCd: 1300,
+          // 实时刷新：Flutter 页面不触发无障碍事件，整个 App 打开期间主动查询屏幕节点，
+          // 避免"必须手动切页面才能识别到"（值取 24h，等效于开着就持续刷新）
+          forcedTime: 86400000,
+          resetMatch: 'match',
+          // 关键修复：限制最多执行 1 次，防止按钮属性不变导致无限重复点击
           actionMaximum: 1,
-          forcedTime: 86400000,
-          resetMatch: 'match',
           rules: [
-            { key: 1, action: 'clickCenter', matches: ['@[desc="确认出库"][clickable=true][visibleToUser=true]'], actionDelay: 500, fastQuery: false, activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
-          ],
-        },
-        {
-          key: 7,
-          name: '导航按钮出现（标记）',
-          desc: '方案A标记规则(action:none)：物流司机端主页出现「导航」按钮时记录日志（拍照完成回到主页的信号），监听脚本收到后自动执行后续流程。不自动点击，避免主页被频繁拉起地图选择',
-          action: 'none',
-          actionCd: 5000,
-          forcedTime: 86400000,
-          resetMatch: 'match',
-          rules: [
-            { key: 1, action: 'none', matches: ['View[desc="导航"][clickable=true][visibleToUser=true]'], fastQuery: false, activityIds: ['com.xunmeng.tms.activity.FlutterMainActivity'] },
+            {
+              key: 1,
+              action: 'clickCenter',
+              matches: [
+                '@[desc="确认出库"][clickable=true][visibleToUser=true]',
+              ],
+              actionDelay: 500,
+              fastQuery: false,
+              activityIds: [
+                'com.xunmeng.tms.activity.FlutterMainActivity',
+              ],
+            },
           ],
         },
       ],
     },
+    // 高德地图：起点或终点为指定地点时，路线页停留 10 秒后自动点「开始导航」
     {
       id: 'com.autonavi.minimap',
       name: '高德地图',
@@ -223,80 +335,28 @@
         {
           key: 1,
           name: '自动开始导航（指定地点）',
-          desc: '点击规则：「开始导航」按钮持续存在 6 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
+          desc: '「开始导航」按钮持续存在 10 秒后才点击(actionDelay)，且起点或终点必须是白名单中的指定地点，避免误触其他路线',
+          // 快照 1790933723559 实测：高德17.00.0.2009 实际 activity 为完整包名，相对形式不命中，故写全
           activityIds: 'com.autonavi.map.activity.NewMapActivity',
-          forcedTime: 30000,
-          actionDelay: 6000,
+          // 官方定义：查询到节点 → 等待一段时间 → 再次查询到节点则执行 action
+          actionDelay: 10000,
+          // 只点一次；从非匹配界面切回匹配界面时重置（AGENTS.md 第 6 条）
           actionMaximum: 1,
           resetMatch: 'match',
+          // 点击目标与条件节点分处不同子树，从根节点开始匹配更稳
           matchRoot: true,
           rules: [
             {
               key: 1,
-              action: 'clickCenter',
+              // 点击目标：「开始导航」的可点击节点在 desc 上，内层 text 节点 clickable=false
               matches: '[desc="开始导航"]',
+              // 任一满足即可：起点或终点为该指定地点（白名单枚举，不用包含匹配）
               anyMatches: [
-                '[desc$="江西省南昌市南昌县丁新大道188号"]',
-                '[desc$="江西省阀门产品质量检测站"]',
-                '[desc$="一路发大型停车场"]',
-                '[desc$="江西省南昌市南昌县高新南大道116号"]',
+                '[desc="起点，江西省阀门产品质量检测站"]',
+                '[desc="终点，江西省阀门产品质量检测站"]',
+                '[desc="起点，江西省南昌市南昌县丁新大道188号"]',
+                '[desc="终点，江西省南昌市南昌县丁新大道188号"]',
               ],
-            },
-          ],
-        },
-        // 导航结束后的行程总结/广告页：识别特征文案后自动返回退出
-        {
-          key: 2,
-          name: '结束导航退出广告页',
-          desc: '导航结束后的行程总结+广告页（代驾/酒店/榜单推荐），识别专属文案后自动 back 退出；activityIds 与路线页相同(NewMapActivity)，仅靠文案区分，不会在规划路线/导航中误触发',
-          // 只退一次；从非匹配界面切回匹配界面（下次导航结束）才重置
-          actionMaximum: 1,
-          resetMatch: 'match',
-          // 防连退：触发后退回其它页面，冷却 5 秒内不再次匹配
-          actionCd: 5000,
-          rules: [
-            {
-              key: 1,
-              // back：向系统发起返回事件（官方 action），退出广告页
-              action: 'back',
-              // 特征文案白名单（快照 1791990170732 实测命中），冗余多文案任一命中即退出：
-              //  "找到目的地了吗"：导航结束满意度询问
-              //  "最高(公里/小时)"：行程数据标题
-              //  "酒后不开车，代驾用高德" / "省心更省钱" / "惊喜优惠，全网比价，一键出发"：代驾广告卡片文案
-              // 全部为导航结束页专属、不含动态数字和地名，普通路线页/导航中不出现（路线页快照实测 0 命中）
-              // 注意：不加"去看看"等宽泛词，避免路线页沿途推荐卡片误触发返回
-              matches: '[text="找到目的地了吗"||text="最高(公里/小时)"||text="酒后不开车，代驾用高德"||text="省心更省钱"||text="惊喜优惠，全网比价，一键出发"]',
-              activityIds: 'com.autonavi.map.activity.NewMapActivity',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'com.netease.cloudmusic',
-      name: '网易云音乐',
-      groups: [
-        // 黑胶SVIP升级付费弹窗（识别到使用耳机听歌后弹出）：识别专属文案后自动返回关闭
-        {
-          key: 1,
-          name: '关闭SVIP升级弹窗',
-          desc: '识别黑胶SVIP付费弹窗专属文案（协议提示/优惠说明）后自动 back 关闭；弹窗右上角关闭按钮在无障碍树中无文字/desc/id 可匹配（RN 绘制），故用返回键；不用"支付方式/限时特惠"等通用词，避免商城页误触',
-          // 只关一次；从非匹配界面切回匹配界面（下次弹窗）才重置
-          actionMaximum: 1,
-          resetMatch: 'match',
-          // 防连退：关闭后退回其它页面，冷却 3 秒内不再次匹配
-          actionCd: 3000,
-          rules: [
-            {
-              key: 1,
-              // back：向系统发起返回事件（官方 action），关闭弹窗
-              action: 'back',
-              // 特征文案白名单（快照 1792056133486 实测命中，均为付费弹窗专属）：
-              //  "开通前请阅读"：底部协议提示
-              //  "优惠仅限1次"：促销说明
-              //  "黑胶SVIP·升级N天" 含动态天数不用；"支付方式/限时特惠"通用词不用（防误触）
-              matches: '[text="开通前请阅读"||text="优惠仅限1次"]',
-              activityIds: 'com.netease.cloudmusic.music.biz.rn.activity.MainProcessLayerReactNativeActivity',
             },
           ],
         },
