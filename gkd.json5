@@ -12,7 +12,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 33,
+  version: 34,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -85,33 +85,43 @@
         {
           key: 1,
           name: '自动连播',
-          // v33 提速改造。v31 只加 forcedTime: 30000 仍慢，根因有两个：
+          desc: '仅在刚进抖音时第1个视频生效，①[长按]视频 → ②开启[自动连播]；已开启则按[返回]收尾。不用 forcedTime 长轮询：靠 matchRoot + resetMatch:app，每次进App只跑一轮',
+          // 三步流程用 preKeys 串联，不依赖 actionDelay 兜底。
           //
-          // ① matchRoot: true（关键）。GKD 默认从「事件节点」开始匹配。抖音设置页点开
-          //    「播放设置」时，事件节点是刚点中的那个小文本，自动连播开关不在它的子树里，
-          //    于是匹配直接落空；而该页近乎静止、后续很少发无障碍事件 → 只能等下一次
-          //    偶发事件才命中，表现为「很慢才检测到」。设为 matchRoot 后每次匹配都从
-          //    根节点开始，页面一渲染就能命中。
-          //    （官方文档 RawCommonProps.matchRoot；本仓库高德地图规则同理）
+          // 为什么去掉 forcedTime：原先靠 forcedTime: 86400000 全程轮询来找开关，
+          // 在抖音主界面这种重界面上会长期低效遍历，拖累同界面其他规则。
+          // 现改为「一次性流程」：进 App 时从根节点匹配一轮（matchRoot），
+          // 靠 preKeys 串起「长按视频 → 点开关 → 收尾返回」，做完即止。
           //
-          // ② forcedTime: 30000 窗口太短。official 语义是「规则激活后的一段时间内主动
-          //    轮询」，30 秒后回落为纯事件驱动，而抖音播放页/设置页几乎不发事件。
-          //    改为 86400000（开着就持续刷新），与多多买菜 Flutter 规则取值一致。
-          //
-          // 注：节点无 id/vid，fastQuery 无法生效（官方要求末尾属性选择器「第一个属性」
-          //     必须是 id/vid/text），故显式置 false，避免误以为已加速。
-          //
-          // 选择器保持精确：文本白名单 + checked=false，只在未开启时点击；
-          // 已开启(checked=true)时不命中，不会误关。
+          // fastQuery: true 成立的原因（判定看「末尾」复合选择器的首属性）：
+          //   ① 末尾是 [vid="viewpager"]        → vid  可快查
+          //   ② 末尾是 [text="自动连播"]         → text 可快查
+          //   ③ 末尾是 [text="自动连播"]         → text 可快查
+          // @Switch[clickable=true] 只是关系链里的左侧节点，不影响快查判定。
           matchRoot: true,
-          forcedTime: 86400000,
-          fastQuery: false,
+          fastQuery: true,
           actionMaximum: 1,
-          resetMatch: 'match',
+          resetMatch: 'app',
           rules: [
             {
-              matches: '[text="自动连播"][visibleToUser=true] + Switch[checked=false][visibleToUser=true]',
-              activityIds: '.main.MainActivity',
+              key: 1,
+              name: '①[长按]视频',
+              action: 'longClickCenter',
+              matches: '[vid="viewpager"][desc="视频"][childCount=2][visibleToUser=true]',
+            },
+            {
+              key: 2,
+              preKeys: [1],
+              name: '②开启[自动连播]',
+              matches: '@Switch[clickable=true][checked=false] - [text="自动连播"]',
+            },
+            {
+              key: 3,
+              preKeys: [1],
+              name: '③已开启-按[返回键]',
+              action: 'back',
+              actionMaximumKey: 2,
+              matches: '@Switch[clickable=true][checked=true] - [text="自动连播"]',
             },
           ],
         },
