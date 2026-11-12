@@ -12,7 +12,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 34,
+  version: 35,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -74,6 +74,18 @@
           name: '关闭',
           rules: [
             { matches: '@ImageView < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < ViewGroup < FrameLayout < RelativeLayout < [id="android:id/content"]', fastQuery: true, activityIds: '.activity.react.UPActivityReactNative' },
+          ],
+        },
+        {
+          key: 3,
+          name: '每日签到（玩赚中心）',
+          desc: '首页右侧悬浮「玩赚中心」入口，一天点一次即可。红框圈的就是这个悬浮按钮；用 id+desc 双重限定，避免点到「专属推荐/本地精彩」里同名卡片或其它悬浮广告。点开后在玩赚中心里做连签签到（本页快照无法覆盖小程序内部，内部签到仍需手动或另配规则）。',
+          actionMaximum: 1,
+          matchTime: 10000,
+          resetMatch: 'app',
+          fastQuery: true,
+          rules: [
+            { matches: '[id="com.unionpay:id/float_view"][desc="玩赚中心"]', activityIds: '.activity.UPActivityMain' },
           ],
         },
       ],
