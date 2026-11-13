@@ -12,7 +12,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 35,
+  version: 36,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -86,6 +86,24 @@
           fastQuery: true,
           rules: [
             { matches: '[id="com.unionpay:id/float_view"][desc="玩赚中心"]', activityIds: '.activity.UPActivityMain' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'com.eg.android.AlipayGphone',
+      name: '支付宝',
+      groups: [
+        {
+          key: 1,
+          name: '电脑登录确认',
+          desc: '支付宝 H5「登录确认」页（即将在电脑上登录XXX）自动点「确认登录」。安全边界：选择器要求「确认登录」按钮紧跟在正文「请确认是否是本人操作」之后（WebView 内相邻节点），只在这套确认模板上生效；actionMaximum + resetMatch:app 保证每次进入支付宝最多自动点 1 次，不会循环。属于授权类操作：电脑端发起登录时手机会直接放行，不需要本人再点。',
+          actionMaximum: 1,
+          matchTime: 10000,
+          resetMatch: 'app',
+          fastQuery: true,
+          rules: [
+            { matches: '[text="请确认是否是本人操作"] + Button[text="确认登录"]', activityIds: '.activity.XRiverActivity' },
           ],
         },
       ],
