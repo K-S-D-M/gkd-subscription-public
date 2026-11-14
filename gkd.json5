@@ -12,7 +12,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 36,
+  version: 37,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -380,6 +380,32 @@
               //  "黑胶SVIP·升级N天" 含动态天数不用；"支付方式/限时特惠"通用词不用（防误触）
               matches: '[text="开通前请阅读"||text="优惠仅限1次"]',
               activityIds: 'com.netease.cloudmusic.music.biz.rn.activity.MainProcessLayerReactNativeActivity',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // 系统界面组件：activityId 为空，没法用 activityIds 限定，只能靠 appId 收口
+      id: 'miui.systemui.plugin',
+      name: '系统界面组件',
+      groups: [
+        {
+          key: 1,
+          name: '音量过高提示',
+          desc: '音量调到建议值以上时出现的系统确认弹窗，自动点「确定」。未用 activityIds（该界面 activityId 为空，只能靠 appId 收口）。本轮提交未提供该弹窗快照，选择器仅通过官方引擎语法解析校验，命中面待真机确认。',
+          actionMaximum: 1,        // 每次弹窗只点一次"确定"，防重复
+          matchTime: 10000,        // 进场 10 秒内有效
+          resetMatch: 'match',     // 弹窗消失后再出现视为新一次，可以再点
+          rules: [
+            {
+              // 整条链（从左到右）：
+              //   音量提示文案 → 它所在的滚动容器 → 容器的后一个兄弟（按钮栏）→ 按钮栏里的"确定"
+              // [text^="..."]      文案前缀匹配，配 id 后缀双限定，不是单靠 text*= 的宽泛包含
+              // <<n ScrollView     任意深度子孙（祖先链），文案外再多包一层也不失效
+              // + [buttonPanel]    前置兄弟：按钮栏紧跟在滚动区域后面
+              // >n [button1]       任意深度祖先内的按钮，不写 > 直接父级
+              matches: '[id$="message"][text^="要将音量调高到建议的音量以上吗"] <<n ScrollView + [id$="buttonPanel"] >n [id$="button1"][text="确定"]',
             },
           ],
         },
