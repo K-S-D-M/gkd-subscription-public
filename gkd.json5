@@ -12,7 +12,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 38,
+  version: 39,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -86,6 +86,24 @@
           fastQuery: true,
           rules: [
             { matches: '[id="com.unionpay:id/float_view"][desc="玩赚中心"]', activityIds: '.activity.UPActivityMain' },
+          ],
+        },
+        {
+          key: 4,
+          name: '签到后自动去抽奖',
+          desc: '玩赚中心签到成功后的奖励弹层，红底「去抽奖」按钮。弹层外层容器全是无 id 的 View，只有 WebView 框架 id（root-router-view/app）可作为锚点但不够专有，故用 activityId + 文案唯一性收口。',
+          actionMaximum: 1,        // 弹层只点一次，防止重复点击
+          matchTime: 10000,        // 弹层出现后 10 秒内有效
+          resetMatch: 'match',     // 弹层消失后再次出现（如次日签到）重置，可再点
+          rules: [
+            {
+              // [text="去抽奖"]            精确等值；"+1次抽奖"/"次抽奖资格" 都不带"去"字，不会误命中
+              // [clickable=true]           只点真能点的按钮
+              // [visibleToUser=true]       弹层外的同名元素不可见时不触发
+              // 不开 fastQuery：该按钮 textQf=false，不在快速查询索引内，开了反而查不到
+              matches: '[text="去抽奖"][clickable=true][visibleToUser=true]',
+              activityIds: '.liteapp.app.UPLiteAppActivity1',
+            },
           ],
         },
       ],
