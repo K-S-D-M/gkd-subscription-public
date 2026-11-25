@@ -12,7 +12,7 @@
 {
   id: 233001,
   name: 'KSDM 个人订阅',
-  version: 39,
+  version: 40,
   author: 'KSDM',
   updateUrl: 'https://k-s-d-m.github.io/gkd-subscription-public/gkd.json5',
   checkUpdateUrl: './gkd.version.json5',
@@ -250,7 +250,7 @@
         {
           key: 2,
           name: '批量全标已读',
-          activityIds: '.fragment.base.MailFragmentActivity',
+          activityIds: 'com.tencent.qqmail.fragment.base.MailFragmentActivity',
           actionMaximum: 1,        // 点一次即可，多选面板底部栏随后消失，防重复触发
           resetMatch: 'match',     // 面板关闭后再次进入视为新一次
           rules: [
